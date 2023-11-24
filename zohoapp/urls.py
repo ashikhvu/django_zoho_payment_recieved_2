@@ -973,8 +973,11 @@ urlpatterns = [
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
     
+    #==============================================  ASHIKH VU (start) ==============================================
     
-    
+    path('payment_reciedved_list_out', views.payment_reciedved_list_out, name='payment_reciedved_list_out'),
+
+    #==============================================  ASHIKH VU (end) ================================================
     
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

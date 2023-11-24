@@ -20843,3 +20843,12 @@ def recuritem(request):
         return HttpResponse({"message": "success"})
     
     return HttpResponse("Invalid request method.")
+
+#==============================================  ASHIKH VU (start) ==============================================
+
+@login_required(login_url='login')
+def payment_reciedved_list_out(request):
+    company = company_details.objects.get(id=request.user.id)
+    return render(request,'payment_reciedved_list_out.html',{'company':company})
+
+#==============================================  ASHIKH VU (end) ================================================

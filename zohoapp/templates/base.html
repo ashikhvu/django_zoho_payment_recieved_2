@@ -774,8 +774,8 @@
 
                                         {% if setting_variable.recurring_invoices  == "yes" %}
                                         <div class="dropdown-item">
-                                            <a class="d-inline-block" style="color: #ffffff" href="{% url 'view_recurpage' %}">Payment Recieved</a>
-                                            <a class="d-inline-block" style="color: #000000;margin-left: 2px;" href="{% url 'create_recur' %}">
+                                            <a class="d-inline-block" style="color: #ffffff" href="{% url 'payment_reciedved_list_out' %}">Payment Recieved</a>
+                                            <a class="d-inline-block" style="color: #000000;margin-left: 2px;" href="{% url 'payment_reciedved_list_out' %}">
                                                 <span class="icon bg-light rounded-circle" style="text-align: right; width: 25px;">
                     <i class="mdi mdi-plus"></i>
                   </span>
@@ -783,8 +783,8 @@
                                         </div>
                                         {% else %}
                                         <div class="dropdown-item" style="display: none;">
-                                            <a class="d-inline-block" style="color: #ffffff" href="{% url 'view_recurpage' %}">Payment Recieved</a>
-                                            <a class="d-inline-block" style="color: #000000;margin-left: 2px;" href="{% url 'create_recur' %}">
+                                            <a class="d-inline-block" style="color: #ffffff" href="{% url 'payment_reciedved_list_out' %}">Payment Recieved</a>
+                                            <a class="d-inline-block" style="color: #000000;margin-left: 2px;" href="{% url 'payment_reciedved_list_out' %}">
                                                 <span class="icon bg-light rounded-circle" style="text-align: right; width: 25px;">
                     <i class="mdi mdi-plus"></i>
                   </span>
