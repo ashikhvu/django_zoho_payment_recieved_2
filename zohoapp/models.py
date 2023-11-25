@@ -1651,3 +1651,28 @@ class InvoicePayment(models.Model):
     cheque_number = models.CharField(max_length=100, null=True, blank=True)
     upi_id = models.CharField(max_length=100, null=True, blank=True)
     bank = models.ForeignKey(Bankcreation, on_delete=models.SET_NULL, null=True, blank=True)
+
+#==============================================  ASHIKH VU (start) ================================================
+
+class PaymentRecievedModel(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True,blank=True)
+    customer = models.ForeignKey(customer,on_delete=models.CASCADE,null=True,blank=True)
+    customer_name = models.CharField(max_length=255)
+    customer_mail = models.EmailField(null=True)
+    customer_bill_address = models.TextField()
+    customer_gst_treatment = models.CharField(max_length=255)
+    customer_gst_number = models.CharField(max_length=255)
+    payment_recieved_number = models.CharField(max_length=255)
+    reference_number = models.CharField(max_length=255)
+    payment_recieved_date = models.DateTimeField(null=True)
+    payment_recieved_method = models.CharField(max_length=255)
+    cheque_id = models.CharField(max_length=255,null=True)
+    upi_id = models.CharField(max_length=255,null=True)
+    bank = models.ForeignKey(Bankcreation, on_delete=models.CASCADE, null=True,blank=True)
+    acc_num = models.BigIntegerField(null=True)
+    status = models.CharField(max_length=255,null=True)
+
+
+    
+
+#==============================================  ASHIKH VU (end) ================================================

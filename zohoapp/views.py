@@ -20847,8 +20847,153 @@ def recuritem(request):
 #==============================================  ASHIKH VU (start) ==============================================
 
 @login_required(login_url='login')
+def check_payment_num_valid(request):
+    payments = PaymentRecievedModel.objects.filter(user=request.user.id)
+    payments_recieved_number = request.POST.get('payments_recieved_number')
+    if payments.exists():
+        last_id = payments.last().id
+        id = int(last_id)+1
+        if payments_recieved_number == 'PRN-0'+str(id):
+            return HttpResponse("")
+        else:
+            return HttpResponse("<span class='text-danger'>Payment Recieved Number is not Continues</span>")
+    else:
+        if payments_recieved_number != 'PRN-01':
+            return HttpResponse("<span class='text-danger'>Payment Recieved Number is not Continues</span>")
+        else:
+            return HttpResponse("")
+
+@login_required(login_url='login')
 def payment_reciedved_list_out(request):
     company = company_details.objects.get(id=request.user.id)
-    return render(request,'payment_reciedved_list_out.html',{'company':company})
+    payment_list = PaymentRecievedModel.objects.filter(user=request.user.id)
+    return render(request,'payment_reciedved_list_out.html',{'company':company,
+                                                            'payment_list':payment_list})
+
+@login_required(login_url='login')
+def payment_recieved_create(request):
+    company = company_details.objects.get(id=request.user.id)
+    customers = customer.objects.filter(user=request.user.id,status='Active')
+    cust = 'asd'
+    banks = Bankcreation.objects.filter(user = request.user.id)
+    payments = PaymentRecievedModel.objects.filter(user=request.user.id)
+    last_id=''
+    if payments.exists():
+        last_id = payments.last().id
+    return render(request,'payment_recieved_create.html',{'company':company,
+                                                        'customers':customers,
+                                                        'cust':cust,
+                                                        'banks':banks,
+                                                        'payments':payments,
+                                                        'last_id':last_id})
+
+@login_required(login_url='login')
+def get_customer_details_for_pay_rec(request):
+    if request.method =="POST":
+        print('asdasd')
+        cust = customer.objects.get(id=request.POST.get('customer_id'))
+        print(cust.customerEmail)
+        company = company_details.objects.get(id=request.user.id)
+        customers = customer.objects.filter(user=request.user.id,status='Active')
+        return TemplateResponse(request,'payment_recieved_get_customer_details.html',{'cust':cust}) 
+    return redirect('payment_recieved_create')
+
+
+@login_required(login_url='login')
+def payment_recieved_create_new(request):
+    if request.method == "POST":
+        user = User.objects.get(id=request.user.id)
+        customer_name = request.POST.get('customer_name')
+        customer_mail = request.POST.get('customer_mail')
+        customer_bill_address = request.POST.get('customer_bill_address')
+        customer_gst_treatment = request.POST.get('customer_gst_treatment')
+        customer_gst_number = request.POST.get('customer_gst_number')
+        payments_recieved_number = request.POST.get('payments_recieved_number')
+        payments_reference_number = request.POST.get('payments_reference_number')
+        payments_recieved_date = request.POST.get('payments_recieved_date')
+        payments_recieved_method = request.POST.get('payments_recieved_method')
+        # print(payments_recieved_method)
+        if request.POST.get('Draft'):
+            status = 'draft'
+        else:
+            status = 'save'
+        if payments_recieved_method == 'cheque':
+            print('cheque')
+            cheque_id = request.POST.get('cheque_id')
+            print(cheque_id)
+            payment = PaymentRecievedModel(user=user,
+                                        customer_name=customer_name,
+                                        customer_mail=customer_mail,
+                                        customer_bill_address=customer_bill_address,
+                                        customer_gst_treatment=customer_gst_treatment,
+                                        customer_gst_number=customer_gst_number,
+                                        payment_recieved_number=payments_recieved_number,
+                                        reference_number=payments_reference_number,
+                                        payment_recieved_date=payments_recieved_date,
+                                        payment_recieved_method=payments_recieved_method,
+                                        cheque_id=cheque_id,
+                                        status=status)
+            payment.save()
+        elif payments_recieved_method == 'upi':
+            print('upi')
+            upi_id = request.POST.get('upi_id')
+            print(upi_id)
+            payment = PaymentRecievedModel(user=user,
+                                        customer_name=customer_name,
+                                        customer_mail=customer_mail,
+                                        customer_bill_address=customer_bill_address,
+                                        customer_gst_treatment=customer_gst_treatment,
+                                        customer_gst_number=customer_gst_number,
+                                        payment_recieved_number=payments_recieved_number,
+                                        reference_number=payments_reference_number,
+                                        payment_recieved_date=payments_recieved_date,
+                                        payment_recieved_method=payments_recieved_method,
+                                        upi_id=upi_id,
+                                        status=status)
+            payment.save()
+        elif payments_recieved_method == 'cash':
+            print('cash')
+            payment = PaymentRecievedModel(user=user,
+                                            customer_name=customer_name,
+                                            customer_mail=customer_mail,
+                                            customer_bill_address=customer_bill_address,
+                                            customer_gst_treatment=customer_gst_treatment,
+                                            customer_gst_number=customer_gst_number,
+                                            payment_recieved_number=payments_recieved_number,
+                                            reference_number=payments_reference_number,
+                                            payment_recieved_date=payments_recieved_date,
+                                            payment_recieved_method=payments_recieved_method,
+                                            status=status)
+            payment.save()
+        else:
+            print('bank')
+            bank = Bankcreation.objects.get(id=payments_recieved_method)
+            acc_num = bank.ac_no
+            payment = PaymentRecievedModel(user=user,
+                                            customer_name=customer_name,
+                                            customer_mail=customer_mail,
+                                            customer_bill_address=customer_bill_address,
+                                            customer_gst_treatment=customer_gst_treatment,
+                                            customer_gst_number=customer_gst_number,
+                                            payment_recieved_number=payments_recieved_number,
+                                            reference_number=payments_reference_number,
+                                            payment_recieved_date=payments_recieved_date,
+                                            payment_recieved_method=payments_recieved_method,
+                                            bank=bank,
+                                            acc_num=acc_num,
+                                            status=status)
+            payment.save()
+
+    return redirect('payment_reciedved_list_out')
+
+
+@login_required(login_url='login')
+def get_bank_acc_num(request):
+    payments_recieved_method = request.POST.get('payments_recieved_method')
+    if payments_recieved_method != 'cash' and payments_recieved_method != 'upi' and payments_recieved_method != 'cheque':
+        bank = Bankcreation.objects.get(id=payments_recieved_method)
+        return HttpResponse(f'<input type="text" class="form-control text-black" name="bnk_id" value="{bank.ac_no}" id="bnk_id" readonly>')
+    else:
+        return HttpResponse('')
 
 #==============================================  ASHIKH VU (end) ================================================

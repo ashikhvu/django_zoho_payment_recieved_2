@@ -2,6 +2,8 @@
 {% block content %}
 {% load static %}
 
+<script src="https://unpkg.com/htmx.org@1.6.0/dist/htmx.js"></script>
+
 <style>
   #over:hover{
     background-color: rgba(110, 110, 110, 0.616);
@@ -13,6 +15,12 @@
 
   #myTable tbody{
     cursor: pointer;
+  }
+  .tg{
+    color: rgb(13, 215, 13);
+  }
+  .to{
+    color: rgb(223, 146, 3);
   }
 </style>
 
@@ -52,7 +60,7 @@
             <a style="margin-inline-start: 6px;height: 100%;" href="" class="btn btn-outline-light">
                 <i class="fa fa-file-excel-o p-1"></i><span class="fs-6">Export </span>
             </a>
-            <a style="margin-inline-start: 6px;height: 100%;" class="btn btn-outline-light" role="button" href="{% url 'create_sales_order' %}">
+            <a style="margin-inline-start: 6px;height: 100%;" class="btn btn-outline-light" role="button" href="{% url 'payment_recieved_create' %}">
                 <i class="fa fa-plus p-1"></i><span class="fs-6">New</span>
             </a>
            
@@ -64,31 +72,25 @@
             <thead>
               <tr>
                 <th style="text-align: center;">DATE</th>
-                <th style="text-align: center;">SALES ORDER</th>
+                <th style="text-align: center;">PAYMENT RECEIVED NUMBER</th>
                 <th style="text-align: center;">CUSTOMER NAME</th>
                 <th style="text-align: center;">CUSTOMER MAIL</th>
                 <th style="text-align: center;">AMOUNT</th>
                 <th style="text-align: center;">STATUS</th>
                 <th style="text-align: center;">BALANCE</th>
-                <th style="text-align: center;">ACTION</th>
               </tr>
             </thead>
             <tbody>
-              {% for i in sale %}
+              {% for i in payment_list %}
                 <tr id="over" class='clickable-row' data-href="sales_order_det/{{ i.id }}">
-                  <td style="text-align: center;">{{i.sales_date}}</td>
+                  <td style="text-align: center;">{{ i.payment_recieved_date|date:'Y-m-d' }}</td>
                   <!-- <td style="text-align: center;" onclick="location.href ='' " > {{v.Name}}</td> -->
-                  <td style="text-align: center;">{{i.sales_no}}</td>
-                  <td style="text-align: center;">{{i.customer.customerName}}</td>
-                  <td style="text-align: center;">{{i.customer.customerEmail}}</td>
-                  <td style="text-align: center;">{{i.grandtotal}}</td>
-                  <td style="text-align: center;">{{i.status}}</td>
-                  <td style="text-align: center;">{{i.balance}}</td>
-                  {% if i.complete_status == 0 %}
-                    <td style="text-align: center;"><a href="{% url 'convert_to_invoice' i.id %}" style="color: chocolate;">Convert to invoice</a></td>
-                  {% else %}
-                    <td style="text-align: center; color: green;">Completed</td>
-                  {% endif %}
+                  <td style="text-align: center;">{{ i.payment_recieved_number }}</td>
+                  <td style="text-align: center;">{{ i.customer_name }}</td>
+                  <td style="text-align: center;">{{ i.customer_mail }}</td>
+                  <td style="text-align: center;">{{ i. }}</td>
+                  <td style="text-align: center;" {% if i.status == 'save' %}class="tg"{% else %}class="to"{% endif %}>{{ i.status|capfirst }}</td>
+                  <td style="text-align: center;">{{ i. }}</td>
                 </tr>
               {% endfor %}
             </tbody>

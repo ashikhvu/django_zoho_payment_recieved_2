@@ -976,6 +976,11 @@ urlpatterns = [
     #==============================================  ASHIKH VU (start) ==============================================
     
     path('payment_reciedved_list_out', views.payment_reciedved_list_out, name='payment_reciedved_list_out'),
+    path('payment_recieved_create', views.payment_recieved_create, name='payment_recieved_create'),
+    path('get_customer_details_for_pay_rec', views.get_customer_details_for_pay_rec, name='get_customer_details_for_pay_rec'),
+    path('check_payment_num_valid', views.check_payment_num_valid, name='check_payment_num_valid'),
+    path('payment_recieved_create_new', views.payment_recieved_create_new, name='payment_recieved_create_new'),
+    path('get_bank_acc_num', views.get_bank_acc_num, name='get_bank_acc_num'),
 
     #==============================================  ASHIKH VU (end) ================================================
     
