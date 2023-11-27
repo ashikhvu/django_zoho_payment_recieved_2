@@ -20848,12 +20848,12 @@ def recuritem(request):
 
 @login_required(login_url='login')
 def check_payment_num_valid(request):
-    payments = PaymentRecievedModel.objects.filter(user=request.user.id)
+    payments = PaymentRecievedIdModel.objects.filter(user=request.user.id)
     payments_recieved_number = request.POST.get('payments_recieved_number')
     if payments.exists():
-        last_id = payments.last().id
-        id = int(last_id)+1
-        if payments_recieved_number == 'PRN-0'+str(id):
+        last = payments.last()
+        last_id = last.pay_rec_number
+        if payments_recieved_number == last_id:
             return HttpResponse("")
         else:
             return HttpResponse("<span class='text-danger'>Payment Recieved Number is not Continues</span>")
@@ -20870,22 +20870,37 @@ def payment_reciedved_list_out(request):
     return render(request,'payment_reciedved_list_out.html',{'company':company,
                                                             'payment_list':payment_list})
 
+from itertools import chain
+
 @login_required(login_url='login')
 def payment_recieved_create(request):
     company = company_details.objects.get(id=request.user.id)
     customers = customer.objects.filter(user=request.user.id,status='Active')
-    cust = 'asd'
+    cust = ''
     banks = Bankcreation.objects.filter(user = request.user.id)
-    payments = PaymentRecievedModel.objects.filter(user=request.user.id)
-    last_id=''
+    payments = PaymentRecievedIdModel.objects.filter(user=request.user.id)
+    last=''
     if payments.exists():
-        last_id = payments.last().id
+        last = payments.last()
+
+    # datas for the payment recieved table
+    user = User.objects.get(id=request.user.id)
+    invoice_data = invoice.objects.filter(user=user.id)
+    retainer_invoice_data = RetainerInvoice.objects.filter(user=user.id)
+    recurring_invoice_data = Recurring_invoice.objects.filter(user=user.id)
+    credit_note_date = Creditnote.objects.filter(user=user.id)
+
+    all_invoice = list(chain(invoice_data,retainer_invoice_data,recurring_invoice_data,credit_note_date))
+
     return render(request,'payment_recieved_create.html',{'company':company,
                                                         'customers':customers,
                                                         'cust':cust,
                                                         'banks':banks,
                                                         'payments':payments,
-                                                        'last_id':last_id})
+                                                        'last':last,
+                                                        'invoice_data':invoice_data,
+                                                        'retainer_invoice_data':retainer_invoice_data,
+                                                        "all_invoice":all_invoice})
 
 @login_required(login_url='login')
 def get_customer_details_for_pay_rec(request):
@@ -20895,7 +20910,26 @@ def get_customer_details_for_pay_rec(request):
         print(cust.customerEmail)
         company = company_details.objects.get(id=request.user.id)
         customers = customer.objects.filter(user=request.user.id,status='Active')
-        return TemplateResponse(request,'payment_recieved_get_customer_details.html',{'cust':cust}) 
+        # datas for the payment recieved table
+        user = User.objects.get(id=request.user.id)
+        invoice_data = invoice.objects.filter(user=user.id,customer=cust.id)
+        retainer_invoice_data = RetainerInvoice.objects.filter(user=user.id,customer_name=cust.id)
+        recurring_invoice_data = Recurring_invoice.objects.filter(user=user.id,cust_name=cust.id)
+
+        all_invoice = list(chain(invoice_data,retainer_invoice_data,recurring_invoice_data))
+
+        banks = Bankcreation.objects.filter(user = request.user.id)
+
+        payments = PaymentRecievedIdModel.objects.filter(user=request.user.id)
+        last=''
+        if payments.exists():
+            last = payments.last()
+
+        return TemplateResponse(request,'payment_recieved_get_customer_details.html',{'cust':cust,
+                                                                                    'payments':payments,
+                                                                                    'last':last,
+                                                                                    'banks':banks,
+                                                                                    'all_invoice':all_invoice}) 
     return redirect('payment_recieved_create')
 
 
@@ -20983,6 +21017,30 @@ def payment_recieved_create_new(request):
                                             acc_num=acc_num,
                                             status=status)
             payment.save()
+        if PaymentRecievedIdModel.objects.filter(user=request.user.id).exists():
+            pay_id = PaymentRecievedIdModel.objects.filter(user=request.user.id).last()
+            if payments_recieved_number != pay_id.pay_rec_number:
+                ref_num = int(payment.id)+1
+                pay_id.ref_number = f'{ref_num:02}'
+                pay_id.save()
+            else:
+                pay_id = PaymentRecievedIdModel(user=user)
+                pay_id.save()
+                ref_num = int(payment.id)+1
+                pay_id.ref_number = f'{ref_num:02}'
+
+                pay_rec_num = int(pay_id.id)+1
+                pay_id.pay_rec_number = f'PRN-{pay_rec_num:02}'
+                pay_id.save()
+        else:
+            pay_id = PaymentRecievedIdModel(user=user)
+            pay_id.save()
+            ref_num = int(payment.id)+1
+            pay_id.ref_number = f'{ref_num:02}'
+
+            pay_rec_num = int(pay_id.id)+1
+            pay_id.pay_rec_number = f'PRN-{pay_rec_num:02}'
+            pay_id.save()
 
     return redirect('payment_reciedved_list_out')
 

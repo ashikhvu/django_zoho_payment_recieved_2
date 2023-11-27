@@ -2,7 +2,7 @@
 {% block content %}
 {% load static %}
 {% load tz %}
-
+{% load my_extras %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 <!-- <link rel="stylesheet" href="{% static 'assets/css/style.css' %}"> -->
 <script src="https://unpkg.com/htmx.org@1.6.0/dist/htmx.js"></script>
@@ -189,7 +189,7 @@
           </div>
         </div>
         <input hidden id="customer_value" type="text" name="customer_id" value="">
-        <input type="text" class="form-control bg-light text-dark" id="customer_list" name="customer_name" autocomplete="on">
+        <input type="text" class="form-control bg-light text-dark" id="customer_list" name="customer_name" required>
         <a data-toggle="modal" data-target="#newcustomer" class="btn btn-outline-light p-2 fs-5 fw-bolder ms-2" style="height: 80%;width: 3rem;">+</a>
       </div>
     </div>
@@ -201,7 +201,7 @@
       </div>
 
       <div class="col-md-7">
-        <input type="email" class="form-control bg-light text-dark"   id="" name="customer_mail" value="{{ cust.customerEmail }}" >
+        <input type="email" class="form-control bg-light text-dark"   id="" name="customer_mail" value="{{ cust.customerEmail }}" required>
       </div>
     </div>
 
@@ -211,7 +211,7 @@
       </div>
 
       <div class="col-md-7">
-        <textarea id="" cols="30" rows="3" name="customer_bill_address"></textarea>
+        <textarea id="" cols="30" rows="3" name="customer_bill_address" required></textarea>
         <label id="order_label" style="display: none;"></label>
       </div>
     </div>
@@ -222,7 +222,7 @@
       </div>
 
       <div class="col-md-7">
-        <input type="text" name="customer_gst_treatment">
+        <input type="text" name="customer_gst_treatment" required>
         <label id="order_label" style="display: none;"></label>
       </div>
     </div>
@@ -233,11 +233,11 @@
       </div>
 
       <div class="col-md-7">
-        <input type="text" name="customer_gst_number">
+        <input type="text" name="customer_gst_number" required>
         <label id="order_label" style="display: none;"></label>
       </div>
     </div>
-   </div>
+   
 
     <div class="row mt-3">
       <div class="col-md-3">
@@ -245,11 +245,11 @@
       </div>
 
       <div class="col-md-7">
-        <input type="text" {% if payments %}value="PRN-0{{ last_id|add:1 }}" placeholder="PRN-0{{ last_id|add:1 }}"{% else %} value="PRN-01" placeholder="PRN-01" {% endif %} name="payments_recieved_number"
+        <input type="text" {% if payments %}value="{{ last.pay_rec_number }}" placeholder="{{ last.pay_rec_number }}"{% else %} value="PRN-01" placeholder="PRN-01" {% endif %} name="payments_recieved_number"
         hx-post="{% url 'check_payment_num_valid' %}"
         hx-trigger="keyup delay:0s"
         hx-target="#check_payment_num_valid_target"
-        >
+        required>
         <div id="check_payment_num_valid_target"></div>
       </div>
     </div>
@@ -260,7 +260,7 @@
       </div>
 
       <div class="col-md-7">
-        <input type="text" class="form-control bg-light text-dark"   id="ref" name="payments_reference_number" {% if payments %}value="0{{ last_id|add:1 }}"{% else %} value="01"{% endif %} readonly>
+        <input type="text" class="form-control bg-light text-dark" required  id="ref" name="payments_reference_number" {% if payments %}value="{{ last.ref_number }}"{% else %} value="01"{% endif %} readonly>
       </div>
     </div>
 
@@ -270,7 +270,7 @@
         </div>
 
         <div class="col-md-7">
-          <input type="date" class="form-control bg-light text-dark" id="date1" name="payments_recieved_date">
+          <input type="date" class="form-control bg-light text-dark" id="date1" name="payments_recieved_date" required>
         </div>
     </div>
 
@@ -285,7 +285,7 @@
           hx-post="{% url 'get_bank_acc_num' %}"
           hx-trigger="change delay:0s"
           hx-target="#bank_acc_target"
-          >
+          required>
             <option value="" selected hidden>Select Payment Method</option>
             <option value="cash">Cash</option>
             <option value="cheque">Cheque</option>
@@ -348,135 +348,26 @@
             </tr>
           </thead>
           <tbody id="item_table_body">
+            {% for i in all_invoice %}
             <tr id="row1">
-              {% for i in something %}
-              <td></td>
-              <td style="width: 15%;" class='text-right'></td>
-              <td style="width: 17%;" class='text-right'></td>
-              <td style="width: 15%;" class='text-right'></td>
-              <td style="width: 10%;" class='text-right text-dark'></td>
-              <td style="width: 22%;" class='text-right '></td>
-              <td  style="display: none;"></td>
-              <td style="width: 15%;" class='text-right'></td>
-              <td></td>
-              {% endfor %}
-              <!-- <td class='text-center'>
-                <button type='button' id='del_btn1'class='btn  btn-transparent text-danger btn-sm btn-outline-danger rounded-circle delete-row' style='width:30px'>
-                  X
-                </button>
-                <br><br>
-                <button type='button' class='btn  btn-transparent text-primary btn-sm btn-outline-primary rounded-circle clone-row' data-row=1 style='width:30px'>
-                  <i class="fa fa-clone"></i>
-                </button>
-              </td> -->
+              <td>{{ forloop.counter }}</td>
+              <td style="width: 15%;" class='text-right'>{{ i.inv_date|date:'Y-m-d' }}{{ i.retainer_invoice_date|date:'Y-m-d' }}{{ i.start|date:'Y-m-d' }}{{ i.creditnote_date|date:'Y-m-d' }}</td>
+              <td style="width: 17%;" class='text-right'>{{ i.due_date|date:'Y-m-d' }}{{ i.end|date:'Y-m-d' }}{% if i.retainer_invoice_number or i.credit_note %}---- NILL ----{% endif %}</td>
+              <td style="width: 15%;" class='text-right'>{% if i.invoice_no %}INVOICE{% elif i.retainer_invoice_number %}RETAINER{% endif %}{% if i.reinvoiceno %}RECCURING{% endif %}</td>
+              <td style="width: 10%;" class='text-right'>{{ i.invoice_no }}{{ i.retainer_invoice_number }}{{ i.reinvoiceno }}</td>
+              <td style="width: 22%;" class='text-right '>{{ i.grandtotal }}{{ i.total_amount }}{{ i.total }}</td>
+              <td  style="width: 22%;" class='text-right '>{{ i.paid_amount }}{% if i.total_amount and i.balance %}{{ i.total_amount|sub_int:i.balance }}{% endif %}{{ i.paid }}</td>
+              <td style="width: 22%;" class='text-right '>{{ i.balance }}</td>
+              <!-- <td></td> -->
             </tr>
+            {% endfor %}
           </tbody>
         </table>
-        <br>
-        <!-- <button type="button" class="btn btn-sm text-white" style="background-color: rgb(210, 132, 30);" id="add-row">
-          Add another line
-        </button> -->
+
+
       </div>
     </div>
-    <!-- <div class="row border-bottom pb-5 overflow-auto">
-      <div class="col-sm-5 d-flex flex-column mt-auto">
-        <label for="">Customer Notes</label>
-        <textarea name="customer_note" id="" cols="8" rows="20" placeholder=" Will be Displayed on the Purchase Order"></textarea>
-      </div>
-      <div class="col-sm-6 mt-5" >
-        <table class=" table  text-white" style="background-color: rgba(58, 57, 57, 0.8);">
-          <tr>
-            <td>Sub Total</td>
-            <td></td>
-            <td><input type="number" id="subtotal" name="subtotal" step="any" value="0.00" 
-                       class="form-control bg-transparent border-0 text-right subtotal text-white" style="text-align: right;" readonly></td>
-          </tr>
-          <tr style="display: none;" id="tr_igst">
-            <td>IGST</td>
-            <td></td>
-            <td><input type="number" id='igst' name="igst" step="any" value="0.00"
-                       class="form-control bg-transparent border-0 text-right igst  text-white" style="text-align: right;"  readonly></td>
-          </tr>
-          <tr style="display: none;" id="tr_cgst">
-            <td>CGST</td>
-            <td></td>
-            <td><input type="number" id='cgst' name="cgst" step="any" value="0.00"
-                       class="form-control bg-transparent border-0 text-right cgst text-white" style="text-align: right;"  readonly></td>
-          </tr>
-          <tr style="display: none;" id="tr_sgst">
-            <td>SGST</td>
-            <td></td>
-            <td><input type="number" id='sgst' name="sgst" step="any" value="0.00"
-                       class="form-control bg-transparent border-0 text-right sgst  text-white" style="text-align: right;"  readonly></td>
-          </tr>
-          <tr>
-            <td>Tax Amount</td>
-            <td></td>
-            <td><input type="number" id="total_taxamount" name="totaltax" step="any" value="0.00" 
-                       class="total_taxamount form-control bg-transparent border-0 text-right  text-white" style="text-align: right;"  readonly></td>
-          </tr>
-          <tr>
-              <td>Shipping Charges</td>
-              <td><input type="hidden" id="shipping_charge"  step="any" value="0.00" 
-                  class="form-control bg-transparent border-0 text-right shipping_charge  "  style="text-align: right;" ></td>
-              <td>
-                <input type="number" class="form-control  bg-transparent border-0  text-light" id="shipping" value="0" name="shipping_charge" style="text-align: right;" >
-              </td>
-          </tr>
-            <tr>
-              <td>Adjustment</td>
-              <td></td>
-              <td>
-                <input type="number" class="form-control  bg-transparent border-0  text-light" id="adjust" value="0" name="adjust" style="text-align: right;"> 
-              </td>
-          </tr>
-          <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-          </tr>
-          <tr>
-              <th>Total ( &#x20B9; )</th>
-              <th></th>
-              <th><input type="number" id="grandtotal" name="t_total" step="any" value="0.00" 
-                         class="form-control bg-transparent border-0 text-right grandtotal  text-white" style="text-align: right;"  readonly></th>
-          </tr>
-        </table>
-
-        <div class="col-sm-12 mt-4" >
-          <table class=" table  text-white" style="background-color: rgba(58, 57, 57, 0.8);">
-            <tr>
-                <td>Advance Paid</td>
-                <td></td>
-                <td><input type="number" id="advance" name="advance" step="any" value="0.00"
-                           class="form-control bg-transparent border-0 text-right advance text-white" style="text-align: right;" ></td>
-            </tr>
-            <tr>
-                <td>Balance</td>
-                <td></td>
-                <td>
-                  <input type="number" id='balance' name="balance" step="any" value="0.00"
-                         class="form-control bg-transparent border-0 text-right balance  text-white" style="text-align: right;"  readonly>
-                  <div style="color: red; display: none;" id="advancediv">Advance is greater than Total</div>
-                </td>
-            </tr>
-          </table>
-        </div>
-      </div>
-    </div> -->
-
-    <!-- <div class="row border-bottom">
-      <div class="col-md-8 d-flex flex-column  text-white mb-5">
-          <label for="">Terms & Conditions</label>
-          <textarea name="ter_cond" id="" cols="20" rows="7"
-              placeholder=" Enter the terms & conditions of your business to be displayed in your transaction."></textarea>
-      </div>
-      <div class="col-md-4 mt-5 text-center rounded" style="background-color: rgba(32, 35, 37); height: 26vh;">
-          <label class="text-white" for="">Attach File(s) to Purchase</label><br>
-          <input id="file-upload" class="form-control bg-light text-dark" type="file" name="file">
-      </div>
-    </div> -->
-
+  </div>
     <div class="row mt-5 mb-3">
       <input style="width: 150px;margin-right: 1vh;" type="submit" class="btn btn-outline-warning p-2 text-" value="Draft" name="Draft">
       <input style="width: 150px;margin-right: 1vh;" type="submit" class="btn btn-outline-success p-2 text-" value="Save" name="Save">
@@ -2854,7 +2745,7 @@ function itemfunction(id_str){
   })
   $('#customer_list').on('click',function(){
     $('#custom_dropdowns').toggle()
-    $('#customer_list').val('')
+    // $('#customer_list').val('')
   })
   $('#custom_dropdowns').on('click',function(){
     $('#custom_dropdowns').toggle()
@@ -2881,5 +2772,35 @@ function itemfunction(id_str){
       }
     })
   })
+  $(document).ready(function(){
+    $('#pay_method').on('change',function(){
+      if($(this).val() === 'cheque')
+      {
+        $('#cheque_id').attr('required',true)
+      }
+      else if($(this).val() === 'upi')
+      {
+        $('#upi_id').attr('required',true)
+      }
+      else{
+        $('#cheque_id').attr('required',false)
+        $('#upi_id').attr('required',false)
+      }
+    })
+  })
+  $(document).on("click","#unitSave",function(){
+  $.ajax({
+    type : 'POST',
+    url:"{% url 'godownmodal_unit' %}",
+    data:{
+        unit : $("#unit").val(),                
+        csrfmiddlewaretoken: '{{ csrf_token }}'        
+      },    
+      success: function(response) {
+        document.getElementById("modalUnit").reset();
+        reloadUnit();
+      },
+  });        
+});
 </script>
 {% endblock %}

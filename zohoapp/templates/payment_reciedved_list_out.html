@@ -40,9 +40,9 @@
                 <i class="fa fa-filter p-1"></i>
             </a>
             <div class="dropdown-menu m-1">
-                <a class="dropdown-item" href="{% url 'view_sales_order_all' %}">All</a>
-                <a class="dropdown-item" href="{% url 'view_sales_order_Draft' %}">Draft</a>
-                <a class="dropdown-item" href="{% url 'view_sales_order_approved' %}">Approved</a>
+                <a class="dropdown-item" onclick="all_saved_and_draft()">All</a>
+                <a class="dropdown-item" onclick="select_draft()">Draft</a>
+                <a class="dropdown-item" onclick="select_save()">Saved</a>
             </div>
             <div class="dropdown">
                 <a style="margin-inline-start: 6px;height: 100%;" class="btn text-center btn-outline-light" id="sortbutton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" role="button" >
@@ -178,5 +178,45 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
     integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
     crossorigin="anonymous">
+</script>
+
+<script>
+  function select_draft()
+  {
+    var tab = $('#myTable')
+    tab.find('tbody tr').each(function(){
+      // alert($(this).text())
+      if($(this).text().toLowerCase().indexOf('draft')>-1)
+      {
+        $(this).show()
+      }
+      else
+      {
+        $(this).hide()
+      }
+    })
+  }
+  function select_save()
+  {
+    var tab = $('#myTable')
+    tab.find('tbody tr').each(function(){
+      // alert($(this).text())
+      if($(this).text().toLowerCase().indexOf('save')>-1)
+      {
+        $(this).show()
+      }
+      else
+      {
+        $(this).hide()
+      }
+    })
+  }
+  function all_saved_and_draft()
+  {
+    var tab = $('#myTable')
+    tab.find('tbody tr').each(function(){
+        $(this).show()
+    })
+  }
 </script>
 {% endblock %}
