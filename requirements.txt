@@ -10,8 +10,10 @@ django-crispy-forms==2.1
 django-htmx==1.17.2
 django-mathfilters==1.0.0
 django-silk==5.0.4
+et-xmlfile==1.1.0
 gprof2dot==2022.7.29
 html5lib==1.1
+openpyxl==3.1.2
 Pillow==10.1.0
 pkg_resources==0.0.0
 pycodestyle==2.11.1

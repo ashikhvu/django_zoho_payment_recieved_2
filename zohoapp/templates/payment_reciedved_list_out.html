@@ -22,9 +22,49 @@
   .to{
     color: rgb(223, 146, 3);
   }
+  .modal {
+    margin-top: 5rem;
+    z-index: 1;
+    overflow: scroll;
+  }
+
+  .modal-backdrop {
+    display: none;
+    z-index: 1 !important;
+  }
+
+  .modal-content {
+    margin: 2px auto;
+    z-index: 1 !important;
+  }
+
 </style>
 
-
+{% if messages %}
+        {% for i in messages %}
+          {% if i.tags == 'warning' %}
+          <div class="alert alert-warning alert-dismissible fade show" role="alert" style="z-index: 1;">
+            <strong>WARNING:</strong> {{ i }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          {% elif i.tags == 'info' %}
+          <div class="alert alert-info alert-dismissible fade show" role="alert"  style="z-index: 1;">
+            <strong>INFO:</strong> {{ i }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          {% elif i.tags == 'success' %}
+          <div class="alert alert-success alert-dismissible fade show" role="alert" style="z-index: 1;">
+            <strong>SUCCESS:</strong> {{ i }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          {% elif i.tags == 'error' %}
+          <div class="alert bg-danger alert-dismissible fade show" role="alert" style="z-index: 1;">
+            <strong>ERROR:</strong> {{ i }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
 <div class="container-fluid">
     <div class="row" style="margin-top: 4rem;">
         <div class="position-relative">
@@ -35,7 +75,8 @@
         <div class="col-sm-12 col-lg-4">
             <input type="text" id="search" class="form-control bg-light text-dark" placeholder="Search.." autocomplete="off">        
         </div>
-        <div class="col-sm-12 col-lg-8 d-flex justify-content-end">
+        <div class="col-sm-12 col-lg-8 ">
+           <div class="d-lg-flex d-sm-none justify-content-end">
             <a style="height: 100%;" class="btn text-center btn-outline-light" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" role="button" >
                 <i class="fa fa-filter p-1"></i>
             </a>
@@ -49,25 +90,25 @@
                     <i  class="fas fa-sort p-1"></i>
                 </a>
                 <div class="dropdown-menu m-1">
-                    <a class="dropdown-item" href="{% url 'view_sales_order_all' %}">All</a>
+                    <a class="dropdown-item" href="">All</a>
                     <a class="dropdown-item" onclick="sortTableName()">Customer Name</a>
                     <a class="dropdown-item" onclick="sortTableTotal()">Total</a>
                 </div>
             </div>
-            <a style="margin-inline-start: 6px;height: 100%;" href="" class="btn btn-outline-light">
+            <a style="margin-inline-start: 6px;height: 100%;" onclick="reduce_dash()" data-bs-toggle="modal" data-bs-target="#exampleModal" class="btn btn-outline-light">
                 <i class="fa fa-file-excel-o p-1"></i><span class="fs-6">Import</span>
             </a>
-            <a style="margin-inline-start: 6px;height: 100%;" href="" class="btn btn-outline-light">
+            <a style="margin-inline-start: 6px;height: 100%;" onclick="exportToExcel()" class="btn btn-outline-light">
                 <i class="fa fa-file-excel-o p-1"></i><span class="fs-6">Export </span>
             </a>
             <a style="margin-inline-start: 6px;height: 100%;" class="btn btn-outline-light" role="button" href="{% url 'payment_recieved_create' %}">
                 <i class="fa fa-plus p-1"></i><span class="fs-6">New</span>
             </a>
-           
+           </div>
         </div>
     </div>
     <br>
-    <div class="row container-fluid m-0 p-0">
+    <div class="row container-fluid m-0 p-0" style="overflow: auto;">
           <table class="table  text-white" id="myTable">
             <thead>
               <tr>
@@ -76,7 +117,7 @@
                 <th style="text-align: center;">CUSTOMER NAME</th>
                 <th style="text-align: center;">CUSTOMER MAIL</th>
                 <th style="text-align: center;">AMOUNT</th>
-                <th style="text-align: center;">STATUS</th>
+                <th style="text-align: center;" class="export_hide">STATUS</th>
                 <th style="text-align: center;">BALANCE</th>
               </tr>
             </thead>
@@ -88,16 +129,72 @@
                   <td style="text-align: center;">{{ i.payment_recieved_number }}</td>
                   <td style="text-align: center;">{{ i.customer_name }}</td>
                   <td style="text-align: center;">{{ i.customer_mail }}</td>
-                  <td style="text-align: center;">{{ i. }}</td>
-                  <td style="text-align: center;" {% if i.status == 'save' %}class="tg"{% else %}class="to"{% endif %}>{{ i.status|capfirst }}</td>
-                  <td style="text-align: center;">{{ i. }}</td>
+                  <td style="text-align: center;">{{ i.pay_rec_paid }}</td>
+                  <td style="text-align: center;" {% if i.status == 'save' %}class="tg export_hide"{% else %}class="to export_hide"{% endif %}>{{ i.status|capfirst }}</td>
+                  <td style="text-align: center;">{{ i.pay_rec_balance }}</td>
                 </tr>
               {% endfor %}
             </tbody>
           </table>
       </div>
-    
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="0" aria-labelledby="exampleModalLabel" aria-hidden="true" style="z-index: 10;">
+      <div class="modal-dialog">
+        <div style="background-color: rgb(63, 63, 63);width: 40rem;" class="modal-content">
+          <!-- <div class="modal-header">
+            
+          </div> -->
+          <div class="modal-body">
+            <div class="d-flex justify-content-between">
+              <h1 class="modal-title fs-5 " id="exampleModalLabel">Import From Excel</h1>
+              <button type="button" class="btn-close text-light" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <hr class="mb-3">
+            <label class="text-danger fw-bold pb-2" for="">Fields needed to be filled are</label>
+            <div style="overflow-x: auto;">
+              <table class="table table-bordered border-secondary">
+                <thead>
+                  <th class="text-light">CUSTOMER NAME</th>
+                  <th class="text-light">CUSTOMER MAIL ID</th>
+                  <th class="text-light">PAYMENT RECIEVED DATE</th>
+                  <th class="text-light">PAYMENT RECIEVED MAETHOD</th>
+                  <th class="text-light">CHEQUE ID</th>
+                  <th class="text-light">UPI ID</th>
+                  <th class="text-light">BANK NAME</th>
+                  <th class="text-light">ACCOUNT NUMBER</th>
+                  <th class="text-light">PAYMENT RECIEVED AMOUNT</th>
+                  <th class="text-light">PAYMENT RECIEVED PAID</th>
+                  <th class="text-light">PAYMENT RECIEVED BALANCE</th>
+                </thead>
+              </table>
+              <p></p>
+            </div>
+            <hr>
+            <form action="{% url 'import_payment_recieved' %}" method="POST" enctype="multipart/form-data">
+              {% csrf_token %}
+              <label style="color: rgb(152, 152, 255);" class=" fw-bolder" for="">Download Sample Excel File</label>
+                  <a class="btn btn-outline-warning ms-5" href="{% url 'download_pay_rec_sampleImportFile' %}">Download</a>
+                 <hr>
+                  <input class="form-control bg-dark" type="file" name="excel_file">
+                  <hr>
+                  <div class="d-flex justify-content-end">
+                    <button type="button" class="btn bt-lg btn-secondary me-2" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn bt-lg btn-primary">Import</button>
+                  </div>
+              </div>
+              <br>
+          </form>
+          <!-- <div class="modal-footer">
+            
+          </div> -->
+        </div>
+      </div>
+    </div>
 </div>
+
+
+
+<!-- onclick="call_import()" -->
 
 <br><br>
 
@@ -218,5 +315,31 @@
         $(this).show()
     })
   }
+  function exportToExcel() {
+        $('.export_hide').remove()
+        var table = document.querySelector('table');
+        var ws = XLSX.utils.table_to_sheet(table);
+        var wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+        XLSX.writeFile(wb, 'report.xlsx');
+        window.location.href=""
+    }
+    function call_import()
+    {
+      $('#call_input').click()
+    }
+    $(document).ready(function(){
+      $('#call_input').on('change',function(){
+        $('#click_sbmt').click()
+        // window.location.url="{% url 'import_payment_recieved' %}"
+      })
+    })
+    // function reduce_dash(){
+    //   alert($('.form-inline .form-check').Width())
+    //   if($('.form-inline .form-check').css('width')=== '100%')
+    //   {
+    //     $('.mdi-menu').click()
+    //   }
+    // }
 </script>
 {% endblock %}

@@ -981,6 +981,8 @@ urlpatterns = [
     path('check_payment_num_valid', views.check_payment_num_valid, name='check_payment_num_valid'),
     path('payment_recieved_create_new', views.payment_recieved_create_new, name='payment_recieved_create_new'),
     path('get_bank_acc_num', views.get_bank_acc_num, name='get_bank_acc_num'),
+    path('import_payment_recieved', views.import_payment_recieved, name='import_payment_recieved'),
+    path('download_pay_rec_sampleImportFile', views.download_pay_rec_sampleImportFile, name='download_pay_rec_sampleImportFile'),
 
     #==============================================  ASHIKH VU (end) ================================================
     

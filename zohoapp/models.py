@@ -1660,7 +1660,7 @@ class PaymentRecievedModel(models.Model):
     customer_name = models.CharField(max_length=255)
     customer_mail = models.EmailField(null=True)
     customer_bill_address = models.TextField()
-    customer_gst_treatment = models.CharField(max_length=255)
+    customer_gst_treatment = models.CharField(max_length=255,default='value',blank=True)
     customer_gst_number = models.CharField(max_length=255,null=True,blank=True)
     payment_recieved_number = models.CharField(max_length=255)
     reference_number = models.CharField(max_length=255)
@@ -1671,6 +1671,9 @@ class PaymentRecievedModel(models.Model):
     bank = models.ForeignKey(Bankcreation, on_delete=models.CASCADE, null=True,blank=True)
     acc_num = models.BigIntegerField(null=True,blank=True)
     status = models.CharField(max_length=255,null=True)
+    pay_rec_amount = models.FloatField(null=True,blank=True)
+    pay_rec_paid = models.FloatField(null=True,blank=True)
+    pay_rec_balance = models.FloatField(null=True,blank=True)
     
 class PaymentRecievedIdModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True,blank=True)
