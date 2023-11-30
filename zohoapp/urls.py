@@ -983,6 +983,11 @@ urlpatterns = [
     path('get_bank_acc_num', views.get_bank_acc_num, name='get_bank_acc_num'),
     path('import_payment_recieved', views.import_payment_recieved, name='import_payment_recieved'),
     path('download_pay_rec_sampleImportFile', views.download_pay_rec_sampleImportFile, name='download_pay_rec_sampleImportFile'),
+    path('payment_recieved_overview/<int:pk>', views.payment_recieved_overview, name='payment_recieved_overview'),
+    path('payment_recieved_view_or_edit/<int:pk>', views.payment_recieved_view_or_edit, name='payment_recieved_view_or_edit'),
+    path('payment_recieved_overview_sort_by_name/<int:pk>', views.payment_recieved_overview_sort_by_name, name='payment_recieved_overview_sort_by_name'),
+    path('payment_recieved_overview_sort_paynum/<int:pk>', views.payment_recieved_overview_sort_paynum, name='payment_recieved_overview_sort_paynum'),
+    path('payment_recieved_update/<int:pk>', views.payment_recieved_update, name='payment_recieved_update'),
 
     #==============================================  ASHIKH VU (end) ================================================
     

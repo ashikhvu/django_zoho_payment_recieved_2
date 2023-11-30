@@ -1,0 +1,645 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+
+<script src="https://unpkg.com/htmx.org@1.6.0/dist/htmx.js"></script>
+
+<style>
+  #over:hover{
+    background-color: rgba(110, 110, 110, 0.616);
+  }
+
+  .dropdown-item:hover{
+    color: rgb(39, 210, 30);
+  }
+
+  #myTable tbody{
+    cursor: pointer;
+  }
+  .tg{
+    color: rgb(13, 215, 13);
+  }
+  .to{
+    color: rgb(223, 146, 3);
+  }
+  .modal {
+    margin-top: 5rem;
+    z-index: 1;
+    overflow: scroll;
+  }
+
+  .modal-backdrop {
+    display: none;
+    z-index: 1 !important;
+  }
+
+  .modal-content {
+    margin: 2px auto;
+    z-index: 1 !important;
+  }
+  .red_hover{
+    color: rgb(255, 255, 255);
+  }
+  .red_hover:hover{
+    color: red;
+  }
+  .green_hover
+  {
+    color: white;
+  }
+  .green_hover:hover{
+    color: rgb(97, 255, 97)
+  }
+  ::-webkit-scrollbar{
+    display: none;
+  }
+  .class1{
+    padding-bottom: 1rem;
+  }
+  .table-custom-hover:hover{
+    background-color: rgb(3, 39, 0);
+  }
+</style>
+
+{% if messages %}
+        {% for i in messages %}
+          {% if i.tags == 'warning' %}
+          <div class="alert alert-warning alert-dismissible fade show" role="alert" style="z-index: 1;">
+            <strong>WARNING:</strong> {{ i }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          {% elif i.tags == 'info' %}
+          <div class="alert alert-info alert-dismissible fade show" role="alert"  style="z-index: 1;">
+            <strong>INFO:</strong> {{ i }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          {% elif i.tags == 'success' %}
+          <div class="alert alert-success alert-dismissible fade show" role="alert" style="z-index: 1;">
+            <strong>SUCCESS:</strong> {{ i }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          {% elif i.tags == 'error' %}
+          <div class="alert bg-danger alert-dismissible fade show" role="alert" style="z-index: 1;">
+            <strong>ERROR:</strong> {{ i }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-12 col-lg-3 pe-3" style="border-right: 1px solid white;background-color: rgba(0, 0, 0, 0.396);">
+            <label class="fs-4" style="font-weight: 500;" for="">Payment Recieved</label>
+            <input class="form-control text-dark" type="text" id="my_input" placeholder="Search Here.." style="z-index: 10;">
+            <div class="d-flex justify-content-between mt-3">
+              <div class="dropdown">
+                <a class="btn btn-sm btn-outline-success" href="" data-bs-toggle="dropdown" aria-expanded="false"><span class="fa fa-sort"> Sort</span></a>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item green_hover" href="{% url 'payment_recieved_overview' 0 %}">All</a></li>
+                  <li><a class="dropdown-item green_hover" href="{% url 'payment_recieved_overview_sort_by_name' pay_data.id %}">Name</a></li>
+                  <li><a class="dropdown-item green_hover" href="{% url 'payment_recieved_overview_sort_paynum' 0 %}">Payment Number</a></li>
+                </ul>
+              </div>
+              <div class="dropdown">
+                <a class="btn btn-sm btn-outline-danger" href="" data-bs-toggle="dropdown" aria-expanded="false"><span class="fa fa-sort"> Filter</span></a>
+                <ul class="dropdown-menu dropdown-menu-top">
+                  <li><a class="dropdown-item red_hover" onclick="all_filter()" href="#">All</a></li>
+                  <li><a class="dropdown-item red_hover" onclick="draft_filter()" href="#">Draft</a></li>
+                  <li><a class="dropdown-item red_hover" onclick="saved_filter()" href="#">Saved</a></li>
+                </ul>
+              </div>
+            </div>
+            <div style="overflow-x: auto;max-height: 33rem;">
+                <table id="myTable" class="w-100">
+                    <thead>
+                        <th></th>
+                        <th></th>
+                    </thead>
+                    <tbody>
+                        {% for i in pay_datas %}
+                        <tr onclick="call_pay_data('{{ i.id }}')" class="table-custom-hover" style="border-bottom:1px solid white">
+                            <td>
+                                <br>
+                                <label class="badge bg-danger p-1" style="color: rgb(255, 255, 255);" for="">{{ i.payment_recieved_number }}</label>
+                                <br>
+                                <label style="color: rgb(198, 198, 198);padding-top: 5px;" for="">Paid : <span class="text-light">{{ i.pay_rec_paid }}</span></label>
+                                <br>
+                                <label style="color: rgb(198, 198, 198);" for=""><span class="text-light">{{ i.customer_name }}</span></label>
+                            </td>
+                            <td>
+                                <br><br>
+                                <div class="text-end p-0 m-0">
+                                    <label style="color: rgb(198, 198, 198);" for="">Bal : <span class="text-light">{{ i.pay_rec_balance }}</span></label>
+                                </div>
+                                <div class="text-end p-0 m-0">
+                                    <label style="color: rgb(198, 198, 198);" for="">Status : <span {% if i.status == 'save' %} style="color: greenyellow;" {% else %} style="color: rgb(255, 210, 63);" {% endif %}>{{ i.status|capfirst }}</span></label>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="col-sm-12 col-lg-9">
+          <label class="fs-4 ps-2" style="font-weight: 500;" for="">Payment Recieved Number <span style="color: rgb(255, 93, 93);">[ {{ pay_data.payment_recieved_number }} ]</span></label>
+            <div class="p-2">
+              <div class="d-lg-flex d-sm-block justify-content-between">
+                <div>
+                  <a class="btn btn-info" onclick="template1()"><span class="fa fa-eye"></span> Overview</a>
+                  <a class="btn btn-primary ms-2" onclick="template2()"><span class="fa fa-file-text-o"></span> Template</a>
+                </div>
+                <div>
+                  <a class="btn btn-outline-light" href="{% url 'payment_recieved_view_or_edit' pay_data.id %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="EDIT"><span class="fa fa-edit"></span></a>
+                  <a class="btn btn-outline-light ms-2" type="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="SHARE"><span class="fa fa-share"></span></a>
+                  <a class="btn btn-outline-light ms-2" type="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="PRINT" onclick="print_content()"><span class="fa fa-print"></span></a>
+                  <a class="btn btn-outline-light ms-2" type="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="PDF"><span class="fa fa-file-pdf-o"></span></a>
+                  <a class="btn btn-outline-light ms-2" type="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="COMMENT"><span class="fa fa-comment"></span></a>
+                  <a class="btn btn-outline-light ms-2" type="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="ATTATCH"><span class="fa fa-paperclip"></span></a>
+                  <a class="btn btn-outline-light ms-2" type="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="DELETE"><span class="fa fa-trash-o"></span></a>
+                </div>
+              </div>
+            </div>
+      
+            <div id="template1" class="card p-2 mt-2" style="overflow-x: auto;max-height: 35rem;">
+              <h3 class="text-center pt-2">PAYMENT RECIEVED</h3>
+              <hr class="mt-0 pt-0">
+              <div class="card bg-success rounded p-2">
+                <h3 style="font-weight: normal;">CUSTOMER DETAILS</h3>
+                <!-- <hr class="m-0"><br> -->
+                <div class="row p-2">
+                  <div style="border-bottom: 1px solid white;border: 1px solid rgba(255, 255, 255, 0.253)"  class="col-sm-12 col-lg-4 p-2">
+                    <label for="">NAME : </label>
+                    <p>{{ pay_data.customer_name|upper }}</p>
+                  </div>
+                  <div style="border: 1px solid rgba(255, 255, 255, 0.253);border-bottom: 1px solid white;" class="col-sm-12 col-lg-4 p-2">
+                    <label for="">EMAIL : </label>
+                    <p>{{ pay_data.customer.customerEmail|upper }}</p>
+                  </div>
+                  <div style="border: 1px solid white;" class="col-sm-12 col-lg-4 p-2">
+                    <label for="">ADDRESS : </label>
+                    <p>{{ pay_data.customer_bill_address }}</p>
+                  </div>
+                  <div style="border: 1px solid rgb(255, 255, 255);"  class="col-sm-12 col-lg-4 p-2">
+                    <label for="">GST TREATMENT : </label>
+                    <p>{{ pay_data.customer_gst_treatment }}</p>
+                  </div>
+                  <div style="border: 1px solid rgba(255, 255, 255, 0.301);" class="col-sm-12 col-lg-4 p-2">
+                    <label for="">GST NUMBER : </label>
+                    <p>{{ pay_data.customer_gst_number }}</p>
+                  </div>
+                </div>
+              </div>
+              <p></p>
+              <div class="row">
+                <div class="col-sm-12 col-lg-6 ps-3">
+                  <div class="row class1">
+                    <div class="col-sm-12 col-lg-6">
+                      <label for="">Payment Rec. No</label>
+                    </div>
+                    <div class="col-sm-12 col-lg-6">
+                      <label for="">: {{ pay_data.payment_recieved_number }}</label>
+                    </div>
+                  </div>
+                  <div class="row class1">
+                    <div class="col-sm-12 col-lg-6">
+                      <label for="">Reference No</label>
+                    </div>
+                    <div class="col-sm-12 col-lg-6" style="word-break: break-all;">
+                      <label for="">: {{ pay_data.reference_number }}</label>
+                    </div>
+                  </div>
+                  <div class="row class1">
+                    <div class="col-sm-12 col-lg-6">
+                      <label for="">Date</label>
+                    </div>
+                    <div class="col-sm-12 col-lg-6">
+                      <label for="">: {{ pay_data.payment_recieved_date|date:'Y-m-d' }}</label>
+                    </div>
+                  </div>
+                  <div class="row class1">
+                    <div class="col-sm-12 col-lg-6">
+                      <label for="">Payment Method</label>
+                    </div>
+                    <div class="col-sm-12 col-lg-6">
+                      <label for="">: {{ pay_data.payment_recieved_method }}</label>
+                    </div>
+                  </div>
+                  {% if cheque_id %}
+                  <div class="row class1">
+                    <div class="col-sm-12 col-lg-6">
+                      <label for="">Cheque Id</label>
+                    </div>
+                    <div class="col-sm-12 col-lg-6">
+                      <label for="">: {{ pay_data.cheque_id }}</label>
+                    </div>
+                  </div>
+                  {% endif %}
+                  {% if upi_id %}
+                  <div class="row class1">
+                    <div class="col-sm-12 col-lg-6">
+                      <label for="">UPI Id</label>
+                    </div>
+                    <div class="col-sm-12 col-lg-6">
+                      <label for="">: {{ pay_data.upi_id }}</label>
+                    </div>
+                  </div>
+                  {% endif %}
+                  {% if bank %}
+                  <div class="row class1">
+                    <div class="col-sm-12 col-lg-6">
+                      <label for="">Bank Name</label>
+                    </div>
+                    <div class="col-sm-12 col-lg-6">
+                      <label for="">: {{ pay_data.bank.name }}</label>
+                    </div>
+                  </div>
+                  {% endif %}
+                  {% if bank %}
+                  <div class="row class1">
+                    <div class="col-sm-12 col-lg-6">
+                      <label for="">Account no</label>
+                    </div>
+                    <div class="col-sm-12 col-lg-6">
+                      <label for="">: {{ pay_data.acc_num }}</label>
+                    </div>
+                  </div>
+                  {% endif %}
+                  <div class="row class1">
+                    <div class="col-sm-12 col-lg-6">
+                      <label for="">Status</label>
+                    </div>
+                    <div class="col-sm-12 col-lg-6">
+                      <label for="">: {{ pay_data.status }}</label>
+                    </div>
+                  </div>
+              </div>
+              <div class="col-sm-12 col-lg-6 p-3">
+                <div class="p-3" style="border: 1px solid white;border-radius: 5px;">
+                  <div class="row class1">
+                    <div class="col-sm-12 col-lg-6">
+                      <label style="font-weight: bolder;" class="fs-4" for="">Amount</label>
+                    </div>
+                    <div class="col-sm-12 col-lg-6">
+                      <label class="fs-4" for=""><span class="ps-3 pe-3">:</span> {{ pay_data.pay_rec_amount }}</label>
+                    </div>
+                  </div>
+                  <div class="row class1">
+                    <div class="col-sm-12 col-lg-6">
+                      <label for="">Paid</label>
+                    </div>
+                    <div class="col-sm-12 col-lg-6">
+                      <label for=""><span class="ps-3 pe-4">:</span> {{ pay_data.pay_rec_paid }}</label>
+                    </div>
+                  </div>
+                  <div class="row class1">
+                    <div class="col-sm-12 col-lg-6">
+                      <label for="">Balance</label>
+                    </div>
+                    <div class="col-sm-12 col-lg-6">
+                      <label for=""><span class="ps-3 pe-4">:</span> {{ pay_data.pay_rec_balance }}</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+        </div>
+
+        <div hidden id="template2" class="card p-2 mt-2 text-dark bg-light" style="overflow-x: auto;max-height: 35rem;">
+          <div class="row p-2"> 
+            <div class="col-sm-12 col-lg-6">
+              <h2>{{ company.company_name|upper }}</h2><br>
+              <label>{{ company.city }} , {{ company.state }} , {{ company.pincode }}</label><br>
+              <label>Phone : {{ company.contact_number }}</label><br>
+              <label>Phone : {{ company.company_email }}</label>
+            </div>
+            <div class="col-sm-12 col-lg-6">
+              <h1 class="text-end">PAYMENT RECIEVED</h1>
+              <br>
+              <p class="text-end fw-5" id="today">DATE : </p>
+            </div>
+          </div>
+          <hr class="mt-0 pt-0">
+          <div class="card bg-light rounded p-2" style="border: 1px solid black;">
+            <h3 style="font-weight: normal;">CUSTOMER DETAILS</h3>
+            <hr class="m-0"><br>
+            <div class="row p-2">
+              <div style="border-bottom: 1px solid rgb(0, 0, 0);border: 1px solid rgba(0, 0, 0, 0.253)"  class="col-sm-12 col-lg-4 p-2">
+                <label for="">NAME : </label>
+                <p>{{ pay_data.customer_name|upper }}</p>
+              </div>
+              <div style="border: 1px solid rgba(0, 0, 0, 0.253);border-bottom: 1px solid white;" class="col-sm-12 col-lg-4 p-2">
+                <label for="">EMAIL : </label>
+                <p>{{ pay_data.customer.customerEmail|upper }}</p>
+              </div>
+              <div style="border: 1px solid rgb(0, 0, 0);" class="col-sm-12 col-lg-4 p-2">
+                <label for="">ADDRESS : </label>
+                <p>{{ pay_data.customer_bill_address }}</p>
+              </div>
+              <div style="border: 1px solid rgb(0, 0, 0);"  class="col-sm-12 col-lg-4 p-2">
+                <label for="">GST TREATMENT : </label>
+                <p>{{ pay_data.customer_gst_treatment }}</p>
+              </div>
+              <div style="border: 1px solid rgba(0, 0, 0, 0.301);" class="col-sm-12 col-lg-4 p-2">
+                <label for="">GST NUMBER : </label>
+                <p>{{ pay_data.customer_gst_number }}</p>
+              </div>
+            </div>
+          </div>
+          <p></p>
+          <div class="row print-flex">
+            <div class="col-sm-12 col-lg-5 ps-3">
+              <div class="row class1 print-flex">
+                <div class="col-sm-12 col-lg-6">
+                  <label for="">Payment Rec. No</label>
+                </div>
+                <div class="col-sm-12 col-lg-6 ">
+                  <label for="">: {{ pay_data.payment_recieved_number }}</label>
+                </div>
+              </div>
+              <div class="row class1 print-flex">
+                <div class="col-sm-12 col-lg-6">
+                  <label for="">Reference No</label>
+                </div>
+                <div class="col-sm-12 col-lg-6" style="word-break: break-all;">
+                  <label for="">: {{ pay_data.reference_number }}</label>
+                </div>
+              </div>
+              <div class="row class1 print-flex">
+                <div class="col-sm-12 col-lg-6">
+                  <label for="">Pay Rec. Date</label>
+                </div>
+                <div class="col-sm-12 col-lg-6">
+                  <label for="">: {{ pay_data.payment_recieved_date|date:'Y-m-d' }}</label>
+                </div>
+              </div>
+              <div class="row class1 print-flex">
+                <div class="col-sm-12 col-lg-6">
+                  <label for="">Payment Method</label>
+                </div>
+                <div class="col-sm-12 col-lg-6">
+                  <label for="">: {{ pay_data.payment_recieved_method }}</label>
+                </div>
+              </div>
+              {% if cheque_id %}
+              <div class="row class1 print-flex">
+                <div class="col-sm-12 col-lg-6">
+                  <label for="">Cheque Id</label>
+                </div>
+                <div class="col-sm-12 col-lg-6">
+                  <label for="">: {{ pay_data.cheque_id }}</label>
+                </div>
+              </div>
+              {% endif %}
+              {% if upi_id %}
+              <div class="row class1 print-flex">
+                <div class="col-sm-12 col-lg-6">
+                  <label for="">UPI Id</label>
+                </div>
+                <div class="col-sm-12 col-lg-6">
+                  <label for="">: {{ pay_data.upi_id }}</label>
+                </div>
+              </div>
+              {% endif %}
+              {% if bank %}
+              <div class="row class1 print-flex">
+                <div class="col-sm-12 col-lg-6">
+                  <label for="">Bank Name</label>
+                </div>
+                <div class="col-sm-12 col-lg-6">
+                  <label for="">: {{ pay_data.bank.name }}</label>
+                </div>
+              </div>
+              {% endif %}
+              {% if bank %}
+              <div class="row class1 print-flex">
+                <div class="col-sm-12 col-lg-6">
+                  <label for="">Account no</label>
+                </div>
+                <div class="col-sm-12 col-lg-6">
+                  <label for="">: {{ pay_data.acc_num }}</label>
+                </div>
+              </div>
+              {% endif %}
+              <div class="row class1 print-flex">
+                <div class="col-sm-12 col-lg-6">
+                  <label for="">Status</label>
+                </div>
+                <div class="col-sm-12 col-lg-6">
+                  <label for="">: {{ pay_data.status }}</label>
+                </div>
+              </div>
+          </div>
+          <div class="col-sm-12 col-lg-7 p-3">
+            <div class="p-3 print-amount" style="border: 1px solid rgb(0, 0, 0);border-radius: 5px;">
+              <div class="row class1 print-flex">
+                <div class="col-sm-12 col-lg-6">
+                  <label style="font-weight: bolder;" class="fs-4" for="">Amount</label>
+                </div>
+                <div class="col-sm-12 col-lg-6">
+                  <label class="fs-4" for=""><span class="ps-3 pe-3">:</span> {{ pay_data.pay_rec_amount }}</label>
+                </div>
+              </div>
+              <div class="row class1 print-flex">
+                <div class="col-sm-12 col-lg-6">
+                  <label for="">Paid</label>
+                </div>
+                <div class="col-sm-12 col-lg-6">
+                  <label for=""><span class="ps-3 pe-4">:</span> {{ pay_data.pay_rec_paid }}</label>
+                </div>
+              </div>
+              <div class="row class1 print-flex">
+                <div class="col-sm-12 col-lg-6">
+                  <label for="">Balance</label>
+                </div>
+                <div class="col-sm-12 col-lg-6">
+                  <label for=""><span class="ps-3 pe-4">:</span> {{ pay_data.pay_rec_balance }}</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+
+    </div>
+</div>
+
+
+<!-- onclick="call_import()" -->
+
+<br><br>
+
+<script>
+    $(document).ready(function(){
+        var table = $('#myTable')
+        $('#my_input').on('keyup',function(){
+            var input = $(this).val()
+            table.find('tbody tr').each(function(){
+                if($(this).text().toLowerCase().indexOf(input.toLowerCase())>-1)
+                {
+                    $(this).show()
+                }
+                else{
+                    $(this).hide()
+                }
+            })
+        })
+    })
+    // filter
+    function all_filter(){
+      table = $('#myTable')
+      table.find('tbody tr').each(function(){
+        $(this).show()
+      })
+    }
+    function saved_filter(){
+      table = $('#myTable')
+      table.find('tbody tr').each(function(){
+        if($(this).text().toLowerCase().indexOf('save')>-1)
+        {
+          $(this).show()
+        }
+        else{
+          $(this).hide()
+        }
+      })
+    }
+    function draft_filter(){
+      table = $('#myTable')
+      table.find('tbody tr').each(function(){
+        if($(this).text().toLowerCase().indexOf('draft')>-1)
+        {
+          $(this).show()
+        }
+        else{
+          $(this).hide()
+        }
+      })
+    }
+    function sortTable(columnIndex) {
+        var table, rows, switching, i, x, y, shouldSwitch;
+        table = document.getElementById("myTable");
+        switching = true;
+        while (switching) {
+            switching = false;
+            rows = table.rows;
+            for (i = 1; i < (rows.length - 1); i++) {
+                shouldSwitch = false;
+                x = rows[i].getElementsByTagName("td")[columnIndex];
+                y = rows[i + 1].getElementsByTagName("td")[columnIndex];
+                if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                    shouldSwitch = true;
+                    break;
+                }
+            }
+            if (shouldSwitch) {
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                switching = true;
+            }
+        }
+    }
+    // Initialize Bootstrap tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    $(document).ready(function(){
+      var date = new Date();
+      formatted_date =  date.toISOString().split('T')[0]
+      $('#today').text($('#today').text()+formatted_date)
+    })
+    function template1()
+    {
+      $('#template1').attr('hidden',false)
+      $('#template2').attr('hidden',true)
+    }
+    function template2()
+    {
+      $('#template2').attr('hidden',false)
+      $('#template1').attr('hidden',true)
+    }
+    function print_content()
+    {
+      $('#template2').attr('hidden',false)
+      $('#template1').attr('hidden',true)
+      
+      
+      // Create an iframe to render the content
+      $('.over').css({'overflow':'hidden'})
+            // $('body').css({'color':'black'})
+            $('html').css({'color':'black','font-size': '11px'})
+            $('.table').removeClass('table-striped')
+            $('table th').css({'color':'black'})
+            $('.print__text').removeClass('text-light')
+            $('.print__text').addClass('text-dark')
+            $('table td').addClass('text-dark')
+            $('.print_title').css({'color':'black'})
+            $('#input_print_hide').hide()
+            $('#print_left_edge').css({'border-left':'1px solid black'})
+            const iframe = document.createElement('iframe');
+            // iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+            // Get the printable content
+            const printableContent = document.getElementById('template2').innerHTML;
+            iframe.contentDocument.open();
+            iframe.contentDocument.write('<html><head><title></title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.5.0/css/bootstrap.min.css">');
+            iframe.contentDocument.write('<style>');
+            iframe.contentDocument.write(`
+                /* Custom alignment styles for printed content */
+                body {
+                    font-family: Arial, sans-serif; /* Change font-family if needed */
+                    // text-align: center; /* Center-align the content */
+                    
+                }
+                table {
+                    width: 100%; /* Make the table width 100% */
+                    border:1px solid black;
+                    border-collapse:collapse;
+                }
+                th, td {
+                    border:1px solid black;
+                    border-collapse:collapse;
+                    // text-align:center;
+                    padding: 10px; /* Add padding for better spacing */
+                }
+                .p-2{
+                  padding:5px;
+                }
+               .print-flex{
+                display:flex;
+               }
+               .print-amount{
+                padding:20px;
+                width:20rem;
+                margin-left:8rem;
+               }
+            `);
+            iframe.contentDocument.write('</style>');
+            iframe.contentDocument.write('</head><body>' + printableContent + '</body></html>');
+            iframe.contentDocument.close();
+    
+        
+            // Print the iframe content
+            iframe.contentWindow.print();
+            document.body.removeChild(iframe);
+
+            $('.over').css({'overflow':'visible'})
+            // $('body').css({'color':'inherit'})
+            $('html').css({'color':'inherit','font-size': 'inherit'})
+            $('.table').addClass('table-striped table-hover')
+            $('.table').removeClass('bg-light')
+            $('.print__text').removeClass('text-dark')
+            $('.print__text').addClass('text-warning')
+            $('table td').removeClass('text-dark')
+            $('.print_title').css({'color':'inherit'})
+            $('#input_print_hide').show()
+            $('#print_left_edge').css({'border-left':'1px solid white'})
+
+    }
+    function call_pay_data(Id)
+    {
+      window.location.href="{% url 'payment_recieved_overview' 0 %}".replace('0',Id) 
+    }
+</script>
+{% endblock %}
