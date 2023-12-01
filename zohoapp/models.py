@@ -1353,6 +1353,7 @@ class Creditnote(models.Model):
     shipping_charge = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     adjustment = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     active = models.BooleanField(default=True)
+    balance = models.FloatField(default=0,null=True)
     
     
 class Credititem(models.Model):
@@ -1674,10 +1675,32 @@ class PaymentRecievedModel(models.Model):
     pay_rec_amount = models.FloatField(null=True,blank=True)
     pay_rec_paid = models.FloatField(null=True,blank=True)
     pay_rec_balance = models.FloatField(null=True,blank=True)
-    
+    file = models.FileField(upload_to='upload/',null=True,blank=True)
+    file_comment = models.TextField(null=True,blank=True)
+
 class PaymentRecievedIdModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True,blank=True)
     ref_number = models.CharField(max_length=255,null=True)
     pay_rec_number = models.CharField(max_length=255,null=True)
+
+class PaymentRecievedAllInvoices(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True,blank=True)
+    customer = models.ForeignKey(customer,on_delete=models.CASCADE,null=True,blank=True)
+    date = models.DateField(null=True)
+    due_date = models.DateField(null=True)
+    invoice_type = models.CharField(max_length=255,null=True)
+    invoice_number = models.CharField(max_length=255,null=True)
+    invoice_amount = models.FloatField(null=True,blank=True)
+    paid = models.FloatField(null=True,blank=True)
+    balance = models.FloatField(null=True,blank=True)
+    payment_recieved = models.ForeignKey(PaymentRecievedModel,on_delete=models.CASCADE,null=True,blank=True)
+
+class PaymentRecievedComments(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True,blank=True)
+    customer = models.ForeignKey(customer,on_delete=models.CASCADE,null=True,blank=True)
+    title = models.CharField(max_length=255,null=True,blank=True)
+    comment = models.TextField(null=True,blank=True)
+    payment_recieved = models.ForeignKey(PaymentRecievedModel,on_delete=models.CASCADE,null=True,blank=True)
+    date = models.DateTimeField(auto_now_add=True,null=True)
 
 #==============================================  ASHIKH VU (end) ================================================

@@ -216,6 +216,7 @@
       </div>
     </div>
 
+    {% if pay_data.customer_gst_treatment %}
     <div class="row mt-2">
       <div class="col-md-3">
         <label for="prof_name" >GST Treatment</label>
@@ -226,7 +227,10 @@
         <label id="order_label" style="display: none;"></label>
       </div>
     </div>
+    {% endif %}
 
+
+    {% if pay_data.customer_gst_number %}
     <div class="row mt-3">
       <div class="col-md-3">
         <label for="prof_name" >GST Number</label>
@@ -237,6 +241,7 @@
         <label id="order_label" style="display: none;"></label>
       </div>
     </div>
+    {% endif %}
    
 
     <div class="row mt-3">
@@ -298,23 +303,23 @@
       </div>
     </div>  
 
-    <div class="row mt-2" id="chequediv" style="display: none;">
+    <div class="row mt-2" id="chequediv" {% if not pay_data.cheque_id %} style="display: none;"{% endif %}>
       <div class="col-md-3">
         <label for="date2">Cheque Number</label>
       </div>
 
       <div class="col-md-7">
-          <input type="text" class="form-control text-black" name="cheque_id" id="cheque_id" placeholder="Enter Cheque ID">
+          <input type="text" class="form-control text-black" name="cheque_id" value="{{ pay_data.cheque_id }}" id="cheque_id" placeholder="Enter Cheque ID">
       </div>
     </div>  
 
-    <div class="row mt-2" id="upidiv" style="display: none;">
+    <div class="row mt-2" id="upidiv" {% if not pay_data.upi_id %} style="display: none;"{% endif %}>
       <div class="col-md-3">
         <label for="date2">UPI ID</label>
       </div>
 
       <div class="col-md-7">
-          <input type="text" class="form-control text-black" name="upi_id" id="upi_id" placeholder="Enter UPI ID">
+          <input type="text" class="form-control text-black" name="upi_id" id="upi_id" value="{{ pay_data.upi_id }}" placeholder="Enter UPI ID">
       </div>
     </div>  
 
@@ -381,7 +386,7 @@
           </div> -->
           <div class="d-lg-flex d-sm-none p-1">
             <label for="amount_"class="p-0 m-0 pt-1 pe-3 ">AMOUNT</label>
-            <input style="font-weight: 500;" id="payment_" name="total_amount" class="rounded from-control w-100 ps-2" value="{{ pay_data.pay_rec_paid }}" type="number" readonly>
+            <input style="font-weight: 500;" id="payment_" name="total_paid" class="rounded from-control w-100 ps-2" value="{{ pay_data.pay_rec_paid }}" type="number" readonly>
           </div>
           <div class="d-lg-flex d-sm-none p-1">
             <label for="balance_" class="p-0 m-0  pt-1 pe-2">BALANCE</label>

@@ -20949,8 +20949,17 @@ def payment_recieved_create_new(request):
         payments_reference_number = request.POST.get('payments_reference_number')
         payments_recieved_date = request.POST.get('payments_recieved_date')
         payments_recieved_method = request.POST.get('payments_recieved_method')
-        total_amount = request.POST.get('total_amount')
+        total_paid = request.POST.get('total_paid')
         total_balance = request.POST.get('total_balance')
+        print('\n\n',total_paid,total_balance)
+
+        invoice_data = invoice.objects.filter(user=user.id,customer=cust.id)
+        retainer_invoice_data = RetainerInvoice.objects.filter(user=user.id,customer_name=cust.id)
+        recurring_invoice_data = Recurring_invoice.objects.filter(user=user.id,cust_name=cust.id)
+        credit_note_date = Creditnote.objects.filter(user=user.id,customer=cust.id)
+
+        # all_invoice = list(chain(invoice_data,retainer_invoice_data,recurring_invoice_data,credit_note_date))
+
         # print(payments_recieved_method)
         if request.POST.get('Draft'):
             status = 'draft'
@@ -20973,9 +20982,9 @@ def payment_recieved_create_new(request):
                                         payment_recieved_method=payments_recieved_method,
                                         cheque_id=cheque_id,
                                         status=status,
-                                        pay_rec_amount = total_amount,
-                                        pay_rec_paid = float(total_amount)-float(total_balance),
-                                        pay_rec_balance = total_balance)
+                                        pay_rec_amount = float(total_paid) + float(total_balance),
+                                        pay_rec_paid = total_paid,
+                                        pay_rec_balance = total_balance,)
             payment.save()
         elif payments_recieved_method == 'upi':
             print('upi')
@@ -20994,9 +21003,9 @@ def payment_recieved_create_new(request):
                                         payment_recieved_method=payments_recieved_method,
                                         upi_id=upi_id,
                                         status=status,
-                                        pay_rec_amount = total_amount,
-                                        pay_rec_paid = float(total_amount)-float(total_balance),
-                                        pay_rec_balance = total_balance)
+                                        pay_rec_amount = float(total_paid) + float(total_balance),
+                                        pay_rec_paid = total_paid,
+                                        pay_rec_balance = total_balance,)
             payment.save()
         elif payments_recieved_method == 'cash':
             print('cash')
@@ -21012,9 +21021,9 @@ def payment_recieved_create_new(request):
                                             payment_recieved_date=payments_recieved_date,
                                             payment_recieved_method=payments_recieved_method,
                                             status=status,
-                                            pay_rec_amount = total_amount,
-                                            pay_rec_paid = float(total_amount)-float(total_balance),
-                                            pay_rec_balance = total_balance)
+                                            pay_rec_amount = float(total_paid) + float(total_balance),
+                                            pay_rec_paid = total_paid,
+                                            pay_rec_balance = total_balance,)
             payment.save()
         else:
             print('bank')
@@ -21030,14 +21039,72 @@ def payment_recieved_create_new(request):
                                             payment_recieved_number=payments_recieved_number,
                                             reference_number=payments_reference_number,
                                             payment_recieved_date=payments_recieved_date,
-                                            payment_recieved_method=payments_recieved_method,
+                                            payment_recieved_method="bank",
                                             bank=bank,
                                             acc_num=acc_num,
                                             status=status,
-                                            pay_rec_amount = total_amount,
-                                            pay_rec_paid = float(total_amount)-float(total_balance),
-                                            pay_rec_balance = total_balance)
+                                            pay_rec_amount = float(total_paid) + float(total_balance),
+                                            pay_rec_paid = total_paid,
+                                            pay_rec_balance = total_balance,)
             payment.save()
+
+        # creating all invoive
+        all_invoice_data = None
+        if invoice_data.exists():
+            for i in invoice_data:
+                all_invoice_data = PaymentRecievedAllInvoices(user=user,
+                                                            customer=cust,
+                                                            date= i.inv_date,
+                                                            due_date = i.due_date,
+                                                            invoice_type = 'INVOICE',
+                                                            invoice_number = i.invoice_no,
+                                                            invoice_amount = i.grandtotal,
+                                                            paid = i.paid_amount,
+                                                            balance = i.balance,
+                                                            payment_recieved=payment)
+                all_invoice_data.save()
+        if retainer_invoice_data.exists():
+            print('a\nasdasdasd\nasads')
+            for i in retainer_invoice_data:
+                all_invoice_data = PaymentRecievedAllInvoices(user=user,
+                                                            customer=cust,
+                                                            date= i.retainer_invoice_date,
+                                                            # due_date = i.due_date,
+                                                            invoice_type = 'RETAINER',
+                                                            invoice_number = i.retainer_invoice_number,
+                                                            invoice_amount = i.total_amount,
+                                                            paid = float(i.total_amount)-float(i.balance),
+                                                            balance = i.balance,
+                                                            payment_recieved=payment)
+                all_invoice_data.save()
+        if recurring_invoice_data.exists():
+            for i in recurring_invoice_data:
+                all_invoice_data = PaymentRecievedAllInvoices(user=user,
+                                                            customer=cust,
+                                                            date= i.start,
+                                                            due_date = i.end,
+                                                            invoice_type = 'RECURRING',
+                                                            invoice_number = i.reinvoiceno,
+                                                            invoice_amount = i.total,
+                                                            paid = i.paid,
+                                                            balance = i.balance,
+                                                            payment_recieved=payment)
+                all_invoice_data.save()
+        if credit_note_date.exists():
+            for i in credit_note_date:
+                all_invoice_data = PaymentRecievedAllInvoices(user=user,
+                                                            customer=cust,
+                                                            date= i.creditnote_date,
+                                                            # due_date = i.end,
+                                                            invoice_type = 'CREDIT NOTE',
+                                                            invoice_number = i.invoice_number,
+                                                            invoice_amount = i.total,
+                                                            paid = float(i.total)-float(i.balance),
+                                                            balance = i.balance,
+                                                            payment_recieved=payment)
+                all_invoice_data.save()
+            
+
         if PaymentRecievedIdModel.objects.filter(user=request.user.id).exists():
             pay_id = PaymentRecievedIdModel.objects.filter(user=request.user.id).last()
             if payments_recieved_number != pay_id.pay_rec_number:
@@ -21089,8 +21156,8 @@ def import_payment_recieved(request):
 
         wb = load_workbook(excel_file)
         ws = wb.active
-        if 1 == 1 :
-        # try:
+        # if 1 == 1 :
+        try:
             for row in ws.iter_rows(min_row=2, values_only=True):
                 name, mail, date,method,cheque_id,upi_id,bank,acc_no,amount,paid,balance = row
                 print(name)
@@ -21235,8 +21302,8 @@ def import_payment_recieved(request):
                     messages.info(request,f"Customer with mail id {mail} doen't exists")
                     return redirect('payment_reciedved_list_out')
             
-        # except:
-        #     messages.warning(request,"Table field is missing / you are importing the wrong File.")
+        except:
+            messages.warning(request,"Table field is missing / you are importing the wrong File.")
         return redirect('payment_reciedved_list_out')
     return redirect('payment_reciedved_list_out')
 
@@ -21272,12 +21339,18 @@ def download_pay_rec_sampleImportFile(request):
 @login_required(login_url='login')
 def payment_recieved_overview(request,pk):
     pay_datas = PaymentRecievedModel.objects.filter(user=request.user.id)
+    if not pay_datas.exists():
+        return redirect('payment_reciedved_list_out')
     if pk == 0:
         pay_data = pay_datas.first()
     else:
         pay_data = PaymentRecievedModel.objects.get(id=pk)
+    all_inv_data=PaymentRecievedAllInvoices.objects.filter(payment_recieved=pay_data.id)
+    comments = PaymentRecievedComments.objects.filter(payment_recieved=pk)
     return render(request,'payment_recieved_overview.html',{"pay_datas":pay_datas,
-                                                            "pay_data":pay_data,})
+                                                            "pay_data":pay_data,
+                                                            'all_inv_data':all_inv_data,
+                                                            "comments":comments})
 
 @login_required(login_url='login')
 def payment_recieved_overview_sort_by_name(request,pk):
@@ -21328,17 +21401,26 @@ def payment_recieved_update(request,pk):
         payments_reference_number = request.POST.get('payments_reference_number')
         payments_recieved_date = request.POST.get('payments_recieved_date')
         payments_recieved_method = request.POST.get('payments_recieved_method')
-        total_amount = request.POST.get('total_amount')
+        total_paid = request.POST.get('total_paid')
         total_balance = request.POST.get('total_balance')
         print(f"{customer_name}\n{customer_mail}\n{customer_bill_address}\n{customer_gst_treatment}")
         print(f"{customer_gst_number}\n{payments_recieved_number}\n{payments_reference_number}\n{payments_recieved_date}")
-        print(f"{payments_recieved_method}\n{total_amount}\n{total_balance}")
+        print(f"{payments_recieved_method}\n{total_paid}\n{total_balance}")
         print(payments_recieved_method)
         payment = PaymentRecievedModel.objects.get(id=pk)
         if request.POST.get('Draft'):
             status = 'draft'
         else:
             status = 'save'
+
+        # check customer is changed or not for deleting current payment all invoices and inserting new all invoices
+        if customer_name == payment.customer_name:
+            customer_changed = False
+            print('customer not changed')
+        else:
+            customer_changed=True
+            print('customer changed changed')
+
         if payments_recieved_method == 'cheque':
             print('cheque')
             cheque_id = request.POST.get('cheque_id')
@@ -21348,7 +21430,7 @@ def payment_recieved_update(request,pk):
             payment.customer_name = customer_name
             payment.customer_mail = customer_mail
             payment.customer_bill_address = customer_bill_address
-            payment.customer_gst_treatment = customer_gst_number
+            payment.customer_gst_treatment = customer_gst_treatment
             payment.customer_gst_number = customer_gst_number
             payment.payment_recieved_number = payments_recieved_number
             payment.reference_number = payments_reference_number
@@ -21359,96 +21441,233 @@ def payment_recieved_update(request,pk):
             payment.bank = None
             payment.acc_num = None
             payment.status = status
-            payment.pay_rec_amount = total_amount
-            payment.pay_rec_paid = float(total_amount)-float(total_balance),
+            payment.pay_rec_amount = float(total_paid) + float(total_balance)
+            payment.pay_rec_paid = total_paid
             payment.pay_rec_balance = total_balance
             payment.save()
-        # elif payments_recieved_method == 'upi':
-        #     print('upi')
-        #     upi_id = request.POST.get('upi_id')
-        #     print(upi_id)
-        #     payment = PaymentRecievedModel(user=user,
-        #                                 customer=cust,
-        #                                 customer_name=customer_name,
-        #                                 customer_mail=customer_mail,
-        #                                 customer_bill_address=customer_bill_address,
-        #                                 customer_gst_treatment=customer_gst_treatment,
-        #                                 customer_gst_number=customer_gst_number,
-        #                                 payment_recieved_number=payments_recieved_number,
-        #                                 reference_number=payments_reference_number,
-        #                                 payment_recieved_date=payments_recieved_date,
-        #                                 payment_recieved_method=payments_recieved_method,
-        #                                 upi_id=upi_id,
-        #                                 status=status,
-        #                                 pay_rec_amount = total_amount,
-        #                                 pay_rec_paid = float(total_amount)-float(total_balance),
-        #                                 pay_rec_balance = total_balance)
-        #     payment.save()
-        # elif payments_recieved_method == 'cash':
-        #     print('cash')
-        #     payment = PaymentRecievedModel(user=user,
-        #                                     customer=cust,
-        #                                     customer_name=customer_name,
-        #                                     customer_mail=customer_mail,
-        #                                     customer_bill_address=customer_bill_address,
-        #                                     customer_gst_treatment=customer_gst_treatment,
-        #                                     customer_gst_number=customer_gst_number,
-        #                                     payment_recieved_number=payments_recieved_number,
-        #                                     reference_number=payments_reference_number,
-        #                                     payment_recieved_date=payments_recieved_date,
-        #                                     payment_recieved_method=payments_recieved_method,
-        #                                     status=status,
-        #                                     pay_rec_amount = total_amount,
-        #                                     pay_rec_paid = float(total_amount)-float(total_balance),
-        #                                     pay_rec_balance = total_balance)
-        #     payment.save()
-        # else:
-        #     print('bank')
-        #     bank = Bankcreation.objects.get(id=payments_recieved_method)
-        #     acc_num = bank.ac_no
-        #     payment = PaymentRecievedModel(user=user,
-        #                                     customer=cust,
-        #                                     customer_name=customer_name,
-        #                                     customer_mail=customer_mail,
-        #                                     customer_bill_address=customer_bill_address,
-        #                                     customer_gst_treatment=customer_gst_treatment,
-        #                                     customer_gst_number=customer_gst_number,
-        #                                     payment_recieved_number=payments_recieved_number,
-        #                                     reference_number=payments_reference_number,
-        #                                     payment_recieved_date=payments_recieved_date,
-        #                                     payment_recieved_method=payments_recieved_method,
-        #                                     bank=bank,
-        #                                     acc_num=acc_num,
-        #                                     status=status,
-        #                                     pay_rec_amount = total_amount,
-        #                                     pay_rec_paid = float(total_amount)-float(total_balance),
-        #                                     pay_rec_balance = total_balance)
-        #     payment.save()
-        # if PaymentRecievedIdModel.objects.filter(user=request.user.id).exists():
-        #     pay_id = PaymentRecievedIdModel.objects.filter(user=request.user.id).last()
-        #     if payments_recieved_number != pay_id.pay_rec_number:
-        #         ref_num = int(payment.id)+1
-        #         pay_id.ref_number = f'{ref_num:02}'
-        #         pay_id.save()
-        #     else:
-        #         pay_id = PaymentRecievedIdModel(user=user)
-        #         pay_id.save()
-        #         ref_num = int(payment.id)+1
-        #         pay_id.ref_number = f'{ref_num:02}'
+        elif payments_recieved_method == 'upi':
+            print('upi')
+            upi_id = request.POST.get('upi_id')
+            print(upi_id)
+            payment.user = user
+            payment.customer = cust
+            payment.customer_name = customer_name
+            payment.customer_mail = customer_mail
+            payment.customer_bill_address = customer_bill_address
+            payment.customer_gst_treatment = customer_gst_treatment
+            payment.customer_gst_number = customer_gst_number
+            payment.payment_recieved_number = payments_recieved_number
+            payment.reference_number = payments_reference_number
+            payment.payment_recieved_date = payments_recieved_date
+            payment.payment_recieved_method = payments_recieved_method
+            payment.cheque_id = None
+            payment.upi_id = upi_id
+            payment.bank = None
+            payment.acc_num = None
+            payment.status = status
+            payment.pay_rec_amount = float(total_paid) + float(total_balance)
+            payment.pay_rec_paid = total_paid
+            payment.pay_rec_balance = total_balance
+            payment.save()
+        elif payments_recieved_method == 'cash':
+            print('cash')
+            print("\n\n",total_paid ,total_balance)
+            payment.user = user
+            payment.customer = cust
+            payment.customer_name = customer_name
+            payment.customer_mail = customer_mail
+            payment.customer_bill_address = customer_bill_address
+            payment.customer_gst_treatment = customer_gst_treatment
+            payment.customer_gst_number = customer_gst_number
+            payment.payment_recieved_number = payments_recieved_number
+            payment.reference_number = payments_reference_number
+            payment.payment_recieved_date = payments_recieved_date
+            payment.payment_recieved_method = payments_recieved_method
+            payment.cheque_id = None
+            payment.upi_id = None
+            payment.bank = None
+            payment.acc_num = None
+            payment.status = status
+            payment.pay_rec_amount = float(total_paid) + float(total_balance)
+            payment.pay_rec_paid = total_paid
+            payment.pay_rec_balance = total_balance
+            payment.save()
+        else:
+            print('bank')
+            bank = Bankcreation.objects.get(id=payments_recieved_method)
+            acc_num = bank.ac_no
+            payment.user = user
+            payment.customer = cust
+            payment.customer_name = customer_name
+            payment.customer_mail = customer_mail
+            payment.customer_bill_address = customer_bill_address
+            payment.customer_gst_treatment = customer_gst_treatment
+            payment.customer_gst_number = customer_gst_number
+            payment.payment_recieved_number = payments_recieved_number
+            payment.reference_number = payments_reference_number
+            payment.payment_recieved_date = payments_recieved_date
+            payment.payment_recieved_method = "bank"
+            payment.cheque_id = None
+            payment.upi_id = None
+            payment.bank = bank
+            payment.acc_num = acc_num
+            payment.status = status
+            payment.pay_rec_amount = float(total_paid) + float(total_balance)
+            payment.pay_rec_paid = total_paid
+            payment.pay_rec_balance = total_balance
+            payment.save()
+        
+        
 
-        #         pay_rec_num = int(pay_id.id)+1
-        #         pay_id.pay_rec_number = f'PRN-{pay_rec_num:02}'
-        #         pay_id.save()
-        # else:
-        #     pay_id = PaymentRecievedIdModel(user=user)
-        #     pay_id.save()
-        #     ref_num = int(payment.id)+1
-        #     pay_id.ref_number = f'{ref_num:02}'
+        if PaymentRecievedIdModel.objects.filter(user=request.user.id).exists():
+            pay_id = PaymentRecievedIdModel.objects.filter(user=request.user.id).last()
+            if payments_recieved_number != pay_id.pay_rec_number:
+                ref_num = int(payment.id)+1
+                pay_id.ref_number = f'{ref_num:02}'
+                pay_id.save()
+            else:
+                pay_id = PaymentRecievedIdModel(user=user)
+                pay_id.save()
+                ref_num = int(payment.id)+1
+                pay_id.ref_number = f'{ref_num:02}'
 
-        #     pay_rec_num = int(pay_id.id)+1
-        #     pay_id.pay_rec_number = f'PRN-{pay_rec_num:02}'
-        #     pay_id.save()
+                pay_rec_num = int(pay_id.id)+1
+                pay_id.pay_rec_number = f'PRN-{pay_rec_num:02}'
+                pay_id.save()
+        else:
+            pay_id = PaymentRecievedIdModel(user=user)
+            pay_id.save()
+            ref_num = int(payment.id)+1
+            pay_id.ref_number = f'{ref_num:02}'
+
+            pay_rec_num = int(pay_id.id)+1
+            pay_id.pay_rec_number = f'PRN-{pay_rec_num:02}'
+            pay_id.save()
+        
+        # if customer changed deete all the cyrrent invoices and insert new
+        invoice_data = invoice.objects.filter(user=user.id,customer=cust.id)
+        retainer_invoice_data = RetainerInvoice.objects.filter(user=user.id,customer_name=cust.id)
+        recurring_invoice_data = Recurring_invoice.objects.filter(user=user.id,cust_name=cust.id)
+        credit_note_date = Creditnote.objects.filter(user=user.id,customer=cust.id)
+        if customer_changed == True:
+            all_invoice_data = PaymentRecievedAllInvoices.objects.filter(payment_recieved=payment.id)
+            all_invoice_data.delete()
+            # creating all invoive
+            all_invoice_data = None
+            if invoice_data.exists():
+                for i in invoice_data:
+                    all_invoice_data = PaymentRecievedAllInvoices(user=user,
+                                                                customer=cust,
+                                                                date= i.inv_date,
+                                                                due_date = i.due_date,
+                                                                invoice_type = 'INVOICE',
+                                                                invoice_number = i.invoice_no,
+                                                                invoice_amount = i.grandtotal,
+                                                                paid = i.paid_amount,
+                                                                balance = i.balance,
+                                                                payment_recieved=payment)
+                    all_invoice_data.save()
+            if retainer_invoice_data.exists():
+                print('a\nasdasdasd\nasads')
+                for i in retainer_invoice_data:
+                    all_invoice_data = PaymentRecievedAllInvoices(user=user,
+                                                                customer=cust,
+                                                                date= i.retainer_invoice_date,
+                                                                # due_date = i.due_date,
+                                                                invoice_type = 'RETAINER',
+                                                                invoice_number = i.retainer_invoice_number,
+                                                                invoice_amount = i.total_amount,
+                                                                paid = float(i.total_amount)-float(i.balance),
+                                                                balance = i.balance,
+                                                                payment_recieved=payment)
+                    all_invoice_data.save()
+            if recurring_invoice_data.exists():
+                for i in recurring_invoice_data:
+                    all_invoice_data = PaymentRecievedAllInvoices(user=user,
+                                                                customer=cust,
+                                                                date= i.start,
+                                                                due_date = i.end,
+                                                                invoice_type = 'RECURRING',
+                                                                invoice_number = i.reinvoiceno,
+                                                                invoice_amount = i.total,
+                                                                paid = i.paid,
+                                                                balance = i.balance,
+                                                                payment_recieved=payment)
+                    all_invoice_data.save()
+            if credit_note_date.exists():
+                for i in credit_note_date:
+                    all_invoice_data = PaymentRecievedAllInvoices(user=user,
+                                                                customer=cust,
+                                                                date= i.creditnote_date,
+                                                                # due_date = i.end,
+                                                                invoice_type = 'CREDIT NOTE',
+                                                                invoice_number = i.invoice_number,
+                                                                invoice_amount = i.total,
+                                                                paid = float(i.total)-float(i.balance),
+                                                                balance = i.balance,
+                                                                payment_recieved=payment)
+                    all_invoice_data.save()
 
     return redirect('payment_reciedved_list_out')
+
+
+@login_required(login_url='login')
+def payment_recieved_delete(request,pk):
+    p = PaymentRecievedModel.objects.get(id=pk)
+    p.delete()
+    return redirect('payment_recieved_overview',pk=0)
+
+
+@login_required(login_url='login')
+def add_comment_payment_recieved(request,pk):
+    if request.method == "POST":
+        user = User.objects.get(id=request.user.id)
+        pay_data = PaymentRecievedModel.objects.get(id=pk)
+        cust = customer.objects.get(id=pay_data.customer.id)
+        title = request.POST.get('comment_title')
+        comment = request.POST['comments']
+        c_data = PaymentRecievedComments(user=user,
+                                        payment_recieved = pay_data,
+                                        customer = cust,
+                                        title=title,
+                                         comment=comment)
+        c_data.save()
+        return redirect('payment_recieved_overview',pk=pk)
+    
+
+@login_required(login_url='login')
+def attatch_file_payment_revieved(request,pk):
+    if request.method == "POST":
+        user = User.objects.get(id=request.user.id)
+        pay_data = PaymentRecievedModel.objects.get(id=pk)
+        cust = customer.objects.get(id=pay_data.customer.id)
+        file = request.FILES['my_file']
+        file_comment = request.POST['file_comment']
+        pay_data.file = file
+        pay_data.file_comment = file_comment
+        pay_data.save()
+        return redirect('payment_recieved_overview',pk=pk)
+
+@login_required(login_url='login')
+def payment_recieved_send_mail_page(request,pk):
+    pay_data = PaymentRecievedModel.objects.get(id=pk)
+    if request.method == 'POST':
+        subject =request.POST['subject']
+        message = request.POST['messege']
+        email = request.POST['email']
+        files = request.FILES.getlist('attach')
+
+        try:
+            mail = EmailMessage(subject, message, settings.EMAIL_HOST_USER, [email])
+            for f in files:
+                mail.attach(f.name, f.read(), f.content_type)
+            mail.send()
+            return render(request, 'customermail.html')
+        except:
+            return render(request, 'customermail.html')
+
+    return render(request, 'payment_recieved_send_mail.html',{'pay_data':pay_data})
+
+
 
 #==============================================  ASHIKH VU (end) ================================================

@@ -988,6 +988,10 @@ urlpatterns = [
     path('payment_recieved_overview_sort_by_name/<int:pk>', views.payment_recieved_overview_sort_by_name, name='payment_recieved_overview_sort_by_name'),
     path('payment_recieved_overview_sort_paynum/<int:pk>', views.payment_recieved_overview_sort_paynum, name='payment_recieved_overview_sort_paynum'),
     path('payment_recieved_update/<int:pk>', views.payment_recieved_update, name='payment_recieved_update'),
+    path('payment_recieved_delete/<int:pk>', views.payment_recieved_delete, name='payment_recieved_delete'),
+    path('add_comment_payment_recieved/<int:pk>', views.add_comment_payment_recieved, name='add_comment_payment_recieved'),
+    path('attatch_file_payment_revieved/<int:pk>', views.attatch_file_payment_revieved, name='attatch_file_payment_revieved'),
+    path('payment_recieved_send_mail_page/<int:pk>', views.payment_recieved_send_mail_page, name='payment_recieved_send_mail_page'),
 
     #==============================================  ASHIKH VU (end) ================================================
     
