@@ -1149,12 +1149,22 @@
 
                             </li>
 							<li class="nav-item menu-items">
-          <a class="nav-link" href="{% url 'ewaylistout' %}">
-            <span class="menu-icon">
-              <i class="mdi mdi-file-outline"></i>
-            </span>
-            <span class="menu-title text-white">E-way Bill</span></a>
-          
+
+                            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">
+                                <span class="menu-icon"><i class="mdi mdi-file-outline "></i></span>
+                                <span class="menu-title text-white">E-way Bill</span></a>
+                            </a>
+                            <ul class="dropdown-menu ">
+                                <li>
+                                    <div class="dropdown-item">
+                                        <a class="d-inline-block" style="color: #f6f7f8" href="{% url 'ewaylistout' %}">E-way Bills</a>
+                                        <a class="d-inline-block" style="color: #000000;margin-left: 2px;" href="{% url 'ewaycreate' %}">
+                                            <span class="icon bg-light rounded-circle ms-5" style="text-align: right; width: 25px;"><i class="mdi mdi-plus"></i></span>
+                                        </a>
+                                    </div>
+                                </li>
+                            </ul>
+                            
         </li>
 
                 </ul>

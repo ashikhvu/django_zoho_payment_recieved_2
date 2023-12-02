@@ -992,6 +992,12 @@ urlpatterns = [
     path('add_comment_payment_recieved/<int:pk>', views.add_comment_payment_recieved, name='add_comment_payment_recieved'),
     path('attatch_file_payment_revieved/<int:pk>', views.attatch_file_payment_revieved, name='attatch_file_payment_revieved'),
     path('payment_recieved_send_mail_page/<int:pk>', views.payment_recieved_send_mail_page, name='payment_recieved_send_mail_page'),
+    path('download_pdf_payment_recieved/<int:pk>', views.download_pdf_payment_recieved, name='download_pdf_payment_recieved'),
+    
+    path('download_ebay_sampleImportFile',views.download_ebay_sampleImportFile,name='download_ebay_sampleImportFile'),
+    path('import_eway_list',views.import_eway_list,name='import_eway_list'),
+    path('ewaycreate_get_customer_details',views.ewaycreate_get_customer_details,name='ewaycreate_get_customer_details'),
+    path('check_eway_num_valid',views.check_eway_num_valid,name='check_eway_num_valid'),
 
     #==============================================  ASHIKH VU (end) ================================================
     

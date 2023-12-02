@@ -41,30 +41,30 @@
 </style>
 
 {% if messages %}
-        {% for i in messages %}
-          {% if i.tags == 'warning' %}
-          <div class="alert alert-warning alert-dismissible fade show" role="alert" style="z-index: 1;">
-            <strong>WARNING:</strong> {{ i }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-          </div>
-          {% elif i.tags == 'info' %}
-          <div class="alert alert-info alert-dismissible fade show" role="alert"  style="z-index: 1;">
-            <strong>INFO:</strong> {{ i }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-          </div>
-          {% elif i.tags == 'success' %}
-          <div class="alert alert-success alert-dismissible fade show" role="alert" style="z-index: 1;">
-            <strong>SUCCESS:</strong> {{ i }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-          </div>
-          {% elif i.tags == 'error' %}
-          <div class="alert bg-danger alert-dismissible fade show" role="alert" style="z-index: 1;">
-            <strong>ERROR:</strong> {{ i }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-          </div>
-          {% endif %}
-        {% endfor %}
-      {% endif %}
+  {% for i in messages %}
+    {% if i.tags == 'warning' %}
+    <div class="alert alert-warning alert-dismissible fade show" role="alert" style="z-index: 1;">
+      <strong>WARNING:</strong> {{ i }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% elif i.tags == 'info' %}
+    <div class="alert alert-info alert-dismissible fade show" role="alert"  style="z-index: 1;">
+      <strong>INFO:</strong> {{ i }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% elif i.tags == 'success' %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert" style="z-index: 1;">
+      <strong>SUCCESS:</strong> {{ i }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% elif i.tags == 'error' %}
+    <div class="alert bg-danger alert-dismissible fade show" role="alert" style="z-index: 1;">
+      <strong>ERROR:</strong> {{ i }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+  {% endfor %}
+{% endif %}
 <div class="container-fluid">
     <div class="row" style="margin-top: 4rem;">
         <div class="position-relative">

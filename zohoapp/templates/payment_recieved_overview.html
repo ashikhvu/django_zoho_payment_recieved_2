@@ -180,7 +180,15 @@
                       <li><a id="lsit_comments" class="dropdown-item ornage_hover" type="button" data-bs-toggle="modal" data-bs-target="#exampleModal2" ><span class="fa fa-list"></span> List</a></li>
                     </ul>
                   </div>
-                  <a id="attatch_file" class="btn btn-outline-warning ms-2" type="button" data-bs-toggle="modal" data-bs-target="#exampleModal2"><span data-bs-toggle="tooltip" data-bs-placement="bottom" title="ATTATCH" class="fa fa-paperclip"></span></a>
+
+                  <div class="dropdown">
+                    <a id="attatch_file" class="btn btn-outline-warning ms-2" type="button" data-bs-toggle="dropdown" aria-expanded="false"><span data-bs-toggle="tooltip" data-bs-placement="bottom" title="ATTATCH" class="fa fa-paperclip"></span></a>
+                    <!-- <a class="btn btn-outline-warning ms-2" type="button"  ><span data-bs-toggle="tooltip" data-bs-placement="bottom"  title="COMMENT" class="fa fa-comment"></span></a> -->
+                    <ul class="dropdown-menu dropdown-menu-top">
+                      <li><a class="dropdown-item ornage_hover" type="button"  data-bs-toggle="modal" data-bs-target="#exampleModal2"><span class="fa fa-paperclip"></span> Attatch</a></li>
+                      <li><a id="lsit_comments" class="dropdown-item ornage_hover" href="{% url 'download_pdf_payment_recieved' pay_data.id %}"><span class="fa fa-download"></span> Download</a></li>
+                    </ul>
+                  </div>
                   <a class="btn btn-outline-warning ms-2" onclick="confirm_delete('{{ pay_data.id }}')" type="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="DELETE"><span class="fa fa-trash-o"></span></a>
                 </div>
               </div>

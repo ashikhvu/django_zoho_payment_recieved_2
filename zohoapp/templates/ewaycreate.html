@@ -3,7 +3,7 @@
 {% load static %}
 
 
-
+<script src="https://unpkg.com/htmx.org@1.6.0/dist/htmx.js"></script>
 <!-- class="row fixed-topss" -->
 <!-- style=" position: fixed;" -->
 <style>
@@ -195,11 +195,22 @@
     ::-webkit-scrollbar-thumb:hover {
       background: #555; 
     }
-
-   
     .item{
       height: auto;
     }
+    #custom_dropdowns ::-webkit-scrollbar{
+      display: none;
+    }
+    .drop_hovers{
+    background-color: transparent;
+   }
+   .drop_hovers:hover
+   {
+      background-color: rgb(5, 98, 0);
+   }
+   #custom_dropdowns{
+    display: none;
+   }
 </style>
 <!-- <section > -->
     <div class="fixed-top" style="top: 7rem; margin-left: 18rem;" >
@@ -207,7 +218,7 @@
           <div style="height: 600px;overflow-y: scroll;">
              <h3  class="mb-3  text-white " style="font-size: 2rem;">New E-way Bill</h3><br>     
       
-            <form  method="post" action="{% url 'create_ewaybillz' %}"  enctype="multipart/form-data" class="">
+            <form method="post" action="{% url 'create_ewaybillz' %}"  enctype="multipart/form-data" class="">
               {% csrf_token %}
               
               
@@ -238,21 +249,39 @@
                         <option value="Export">Export</option>
                         <option value="SKD/CKD">SKD/CKD</option>
                     </select>
- 
                 </div>
-                
             </div>
             <div class="row mt-2">
               <div class="col-md-3">
                 <label style="color:rgb(190, 88, 88);">Customer Name *</label><br>
               </div>
               <div class="col-md-6">
-                <select name="customerzz" id="customer" class="form-control text-dark bg-light" required>
+                <div id="custom_dropdowns" class="position-relative">
+                  <div class="position-absolute bg-success p-1 rounded"  style="margin-top: 3rem;width: 100%;">
+                    <div id="custom-dropdown">
+                      <div style="overflow-y: auto;height: 10rem;">
+                        {% for i in data %}
+                        <p class="text-light drop_hovers p-2 m-0"
+                        hx-post="{% url 'ewaycreate_get_customer_details' %}"
+                        hx-trigger="click delay:0s"
+                        hx-target="#ewaycreate_get_customer_details_target"
+                        >{{ i.customerName }}</p>
+                        <span hidden>{{ i.id }}</span>
+                        {% endfor %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <input hidden id="customer_value" name="customer_id" type="text" value="">
+                <input type="text" class="form-control bg-light text-dark" id="customer_list" name="customer_name" required>
+                <!-- not using start-->
+                <select hidden name="customerzz" id="customer" class="form-control text-dark bg-light" required>
                   <option value=""></option>
                   {% for c in data %}
                   <option value="{{c.id}}" data-email="{{ c.customerEmail }}" data-gst-treatment="{{c.GSTTreatment}}" data-GSTIN="{{c.GSTIN}}">{{ c.customerName }}</option>
                   {% endfor %}
                 </select>
+                <!-- not using end -->
                 <a href="" data-toggle="modal" data-target="#newcustomer">+ Add New Customer</a>
                 <input type="hidden" id="cust_state" value="" readonly >
       
@@ -261,32 +290,38 @@
               </div>
             </div>
       
-            <div class="row mt-2" id="cemail_row">
-              <div class="col-md-3">
-                <label for="cemail_inp">Customer Email</label>
+            <!-- replace email and gst details by template -->
+            <div id="ewaycreate_get_customer_details_target">
+              <div class="row mt-2" id="cemail_row">
+                <div class="col-md-3">
+                  <label for="cemail_inp">Customer Email</label>
+                </div>
+                <div class="col-md-6">
+                  <input type="email" class="form-control text-dark bg-light"  id="cemail_inp" name="cemail"  >
+                </div>
               </div>
-              <div class="col-md-6">
-                <input type="email" class="form-control text-dark bg-light"  id="cemail_inp" name="cemail"  >
+        
+              <div class="row mt-2" id="cgst_trt_row">
+                <div class="col-md-3">
+                  <label for="gst_trt_inp">GST Treatment</label>
+                </div>
+                <div class="col-md-6">
+                  <input type="text" class="form-control text-dark bg-light" id="cgst_trt_inp" name="cgst_trt_inp"  >
+                </div>
               </div>
+
+              <div class="row mt-2 mb-2" id="cgstin_row">
+                <div class="col-md-3">
+                  <label for="gstin_inp">GST Number</label>
+                </div>
+                <div class="col-md-6">
+                  <input type="text" class="form-control text-dark bg-light"  id="cgstin_inp" name="cgstin_inp" >
+                </div>
+              </div>
+
             </div>
       
-            <div class="row mt-2" id="cgst_trt_row">
-              <div class="col-md-3">
-                <label for="gst_trt_inp">GST Treatment</label>
-              </div>
-              <div class="col-md-6">
-                <input type="text" class="form-control text-dark bg-light" id="cgst_trt_inp" name="cgst_trt_inp"  >
-              </div>
-            </div>
-      
-            <div class="row mt-2 mb-2" id="cgstin_row">
-              <div class="col-md-3">
-                <label for="gstin_inp">GST Number</label>
-              </div>
-              <div class="col-md-6">
-                <input type="text" class="form-control text-dark bg-light"  id="cgstin_inp" name="cgstin_inp" >
-              </div>
-            </div>
+           
       
       
 
@@ -296,7 +331,13 @@
                         <label>Invoice#*</label>
                     </div>
                     <div class="col-sm-12 col-md-3 col-lg-3">
-                        <input type="text" class="form-control text-dark bg-light" id="invoiceno" name="invoiceno">
+                        <input type="text" class="form-control text-dark bg-light" id="" {% if eway_id.eway_bill_number %} value="{{ eway_id.eway_bill_number }}" placeholder="{{ eway_id.eway_bill_number }}" {% else %} value="EWB-01" placeholder="EWB-01" {% endif %} name="invoiceno"
+                        hx-post="{% url 'check_eway_num_valid' %}"
+                        hx-trigger="keyup delay:0s"
+                        hx-target="#check_payment_num_valid_target"
+                        required
+                        >
+                        <div id="check_eway_num_valid_target">asd</div>
                     </div>
                     <div class="col-sm-12 col-md-1 col-lg-1 col-form-label">
                         <label>Date</label>
@@ -304,6 +345,14 @@
                     <div class="col-sm-12 col-md-2 col-lg-2">
                         <input type="date" name="date" id="dateInput" class="form-control bg-light text-dark" style="float: left;">
                     </div>
+                </div>
+                <div class="row mt-2 mb-2 form-group" id="cgstin_row">
+                  <div class="col-md-3">
+                    <label >Ref No.</label>
+                  </div>
+                  <div class="col-md-6">
+                    <input type="text" class="form-control text-dark bg-light"  id="" {% if eway_id.ref_number %} value="{{ eway_id.ref_number }}"{% else %}value="01"{% endif %} name="cgstin_inp" readonly>
+                  </div>
                 </div>
                 <script>
                   // JavaScript to set the date input to today's date and restrict selection of other dates
@@ -4747,6 +4796,35 @@ function reloadPayment() {
     gstNumberInput.value = gstNumber;
 
   });
+
+  $('#customer_list').on('click',function(){
+    $('#custom_dropdowns').toggle()
+  })
+  $('#custom_dropdowns').on('click',function(){
+    $('#custom_dropdowns').toggle()
+    $('#custom_dropdowns p').each(function(){
+      $(this).show()
+    })
+  })
+  $('.drop_hovers').on('click',function(){
+    $('#customer_list').val($(this).text())
+    $('#customer_value').val($(this).next('span').text())
+  })
+  $(document).ready(function(){
+    $('#customer_value').val('')
+  })
+  $('#customer_list').on('keyup',function(){
+    var textInput = $(this).val().toLowerCase()
+    $('#custom_dropdowns p').each(function(){
+      if(($(this).text().toLowerCase().indexOf(textInput)) >-1 )
+      {
+        $(this).show()
+      }
+      else{
+        $(this).hide()
+      }
+    })
+  })
 </script>
 
 

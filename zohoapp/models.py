@@ -155,9 +155,7 @@ class doc_upload_table(models.Model):
     vendor=models.ForeignKey(vendor_table,on_delete=models.CASCADE,null=True)
     title=models.TextField(max_length=200)
     document=models.FileField(upload_to='doc/')
-    
-    
-    
+     
 class customer(models.Model):
     user=models.ForeignKey(User,on_delete=models.CASCADE,default='')
     Fname=models.CharField(max_length=100,null=True,blank=True)
@@ -1702,5 +1700,10 @@ class PaymentRecievedComments(models.Model):
     comment = models.TextField(null=True,blank=True)
     payment_recieved = models.ForeignKey(PaymentRecievedModel,on_delete=models.CASCADE,null=True,blank=True)
     date = models.DateTimeField(auto_now_add=True,null=True)
+
+class EwaybillIdModel(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True,blank=True)
+    ref_number = models.CharField(max_length=255,null=True)
+    eway_bill_number = models.CharField(max_length=255,null=True)
 
 #==============================================  ASHIKH VU (end) ================================================

@@ -13333,7 +13333,9 @@ def ewaycreate(request):
      purchase_type = set(Purchase.objects.values_list('Account_type', flat=True))
      item = AddItem.objects.filter(user = request.user)
      company=company_details.objects.get(user=request.user)
-     return render(request,'ewaycreate.html',{'data':data,'payments':payments,'trans':trans,'units':units,'sales':sales,'purchase':purchase,'sales_type':sales_type,'purchase_type':purchase_type,'item':item,'company':company})
+     eway_id = EwaybillIdModel.objects.filter(user=request.user.id).last()
+     return render(request,'ewaycreate.html',{'data':data,'payments':payments,'trans':trans,'units':units,'sales':sales,'purchase':purchase,'sales_type':sales_type,'purchase_type':purchase_type,'item':item,'company':company,
+                                            'eway_id':eway_id})
      
 def ewayb_customer(request):
     
@@ -13579,6 +13581,31 @@ def create_ewaybillz(request):
             user=user,
             cust=cat,
         )
+
+        if EwaybillIdModel.objects.filter(user=request.user.id).exists():
+            eway_id = EwaybillIdModel.objects.filter(user=request.user.id).last()
+            if invoiceno != eway_id.invoiceno:
+                ref_num = int(eway_bill.id)+1
+                eway_id.ref_number = f'{ref_num:02}'
+                eway_id.save()
+            else:
+                eway_id = EwaybillIdModel(user=user)
+                eway_id.save()
+                ref_num = int(eway_bill.id)+1
+                eway_id.ref_number = f'{ref_num:02}'
+
+                pay_rec_num = int(eway_id.id)+1
+                eway_id.pay_rec_number = f'EWB-{pay_rec_num:02}'
+                eway_id.save()
+        else:
+            eway_id = EwaybillIdModel(user=user)
+            eway_id.save()
+            ref_num = int(eway_bill.id)+1
+            eway_id.ref_number = f'{ref_num:02}'
+
+            pay_rec_num = int(eway_id.id)+1
+            eway_id.pay_rec_number = f'EWB-{pay_rec_num:02}'
+            eway_id.save()
 
         items = request.POST.getlist("item[]")
         quantities = request.POST.getlist("quantity[]")
@@ -21669,5 +21696,87 @@ def payment_recieved_send_mail_page(request,pk):
     return render(request, 'payment_recieved_send_mail.html',{'pay_data':pay_data})
 
 
+def download_pdf_payment_recieved(request, pk):
+    pay_data = get_object_or_404(PaymentRecievedModel, id=pk)
+    file_path = pay_data.file.path
 
+    with open(file_path, 'rb') as file:
+        response = HttpResponse(file.read(), content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{pay_data.file.name}"'
+        return response
+
+@login_required(login_url='login')
+def download_ebay_sampleImportFile(request):
+    
+    eway_data = [['Date','Transactions','Customer Name','Customer Email','Customer GSTIN','Amount'], 
+                  ['2023-11-05', '02', 'praveen ss', 'praveen@gmail.com', '22AAAAA0000A1Z5','250'], 
+                  ['2023-06-25', '03', 'saumya ss', 'saumya@gmail.com', '22AAAAA0000A1Z5','250']]
+    wb = Workbook()
+
+    sheet1 = wb.active
+    sheet1.title = 'Sheet1'
+
+    # Populate the sheets with data
+    for row in eway_data:
+        sheet1.append(row)
+
+    # Create a response with the Excel file
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=eway_list.xlsx'
+
+    # Save the workbook to the response
+    wb.save(response)
+
+    return response
+
+@login_required(login_url='login')
+def import_eway_list(request):
+
+    # current_datetime = timezone.now()
+    # date =  current_datetime.date()
+    print(request.FILES['excel_file'])
+    # try:
+    if request.method == "POST" and 'excel_file' in request.FILES:
+        excel_file = request.FILES['excel_file']
+
+        wb = load_workbook(excel_file)
+        ws = wb.active
+        # if 1 == 1 :
+        try:
+            for row in ws.iter_rows(min_row=2, values_only=True):
+                date, trans, name,mail,gstin,amount= row
+                if date != None or trans != None or name != None or mail != None or gstin != None or amount != None:
+                    pass
+                else:
+                    messages.info(request,'Some fields are missing')
+                    return redirect('ewaylistout')
+        except:
+            messages.error(request,"Trying to import Wrong file / Fields Missing , check it's contains all the fields")
+            return redirect('ewaylistout')
+                
+    return redirect('payment_reciedved_list_out')
+
+
+@login_required(login_url='login')
+def ewaycreate_get_customer_details(request):
+    cust = customer.objects.get(id=request.POST.get('customer_id'))
+    return TemplateResponse(request,'ewaycreate_get_customer_details.html',{"cust":cust})
+
+
+@login_required(login_url='login')
+def check_eway_num_valid(request):
+    eway_id = EwaybillIdModel.objects.filter(user=request.user.id)
+    eway_invoive_bill_no = request.POST.get('invoiceno')
+    if eway_id.exists():
+        last = eway_id.last()
+        last_id = last.eway_bill_number
+        if eway_invoive_bill_no == last_id:
+            return HttpResponse("")
+        else:
+            return HttpResponse("<span class='text-danger'>Eway Number is not Continues</span>")
+    else:
+        if eway_invoive_bill_no != 'EWB-01':
+            return HttpResponse("<span class='text-danger'>Eway Number is not Continues</span>")
+        else:
+            return HttpResponse("")
 #==============================================  ASHIKH VU (end) ================================================
