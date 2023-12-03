@@ -4,6 +4,7 @@
 
 
 <script src="https://unpkg.com/htmx.org@1.6.0/dist/htmx.js"></script>
+
 <!-- class="row fixed-topss" -->
 <!-- style=" position: fixed;" -->
 <style>
@@ -195,22 +196,14 @@
     ::-webkit-scrollbar-thumb:hover {
       background: #555; 
     }
+
+   
     .item{
       height: auto;
     }
-    #custom_dropdowns ::-webkit-scrollbar{
+    #custom_dropdowns{
       display: none;
     }
-    .drop_hovers{
-    background-color: transparent;
-   }
-   .drop_hovers:hover
-   {
-      background-color: rgb(5, 98, 0);
-   }
-   #custom_dropdowns{
-    display: none;
-   }
 </style>
 <!-- <section > -->
     <div class="fixed-top" style="top: 7rem; margin-left: 18rem;" >
@@ -218,7 +211,7 @@
           <div style="height: 600px;overflow-y: scroll;">
              <h3  class="mb-3  text-white " style="font-size: 2rem;">New E-way Bill</h3><br>     
       
-            <form method="post" action="{% url 'create_ewaybillz' %}"  enctype="multipart/form-data" class="">
+            <form  method="post" action="{% url 'create_ewaybillz' %}"  enctype="multipart/form-data" class="">
               {% csrf_token %}
               
               
@@ -249,7 +242,9 @@
                         <option value="Export">Export</option>
                         <option value="SKD/CKD">SKD/CKD</option>
                     </select>
+ 
                 </div>
+                
             </div>
             <div class="row mt-2">
               <div class="col-md-3">
@@ -272,16 +267,14 @@
                     </div>
                   </div>
                 </div>
-                <input hidden id="customer_value" name="customer_id" type="text" value="">
+                <input hidden id="customer_value" name="customerzz" type="text" value="">
                 <input type="text" class="form-control bg-light text-dark" id="customer_list" name="customer_name" required>
-                <!-- not using start-->
-                <select hidden name="customerzz" id="customer" class="form-control text-dark bg-light" required>
+                <!-- <select name="customerzz" id="customer" class="form-control text-dark bg-light" required>
                   <option value=""></option>
                   {% for c in data %}
                   <option value="{{c.id}}" data-email="{{ c.customerEmail }}" data-gst-treatment="{{c.GSTTreatment}}" data-GSTIN="{{c.GSTIN}}">{{ c.customerName }}</option>
                   {% endfor %}
-                </select>
-                <!-- not using end -->
+                </select> -->
                 <a href="" data-toggle="modal" data-target="#newcustomer">+ Add New Customer</a>
                 <input type="hidden" id="cust_state" value="" readonly >
       
@@ -290,8 +283,8 @@
               </div>
             </div>
       
-            <!-- replace email and gst details by template -->
             <div id="ewaycreate_get_customer_details_target">
+
               <div class="row mt-2" id="cemail_row">
                 <div class="col-md-3">
                   <label for="cemail_inp">Customer Email</label>
@@ -309,7 +302,7 @@
                   <input type="text" class="form-control text-dark bg-light" id="cgst_trt_inp" name="cgst_trt_inp"  >
                 </div>
               </div>
-
+        
               <div class="row mt-2 mb-2" id="cgstin_row">
                 <div class="col-md-3">
                   <label for="gstin_inp">GST Number</label>
@@ -321,8 +314,6 @@
 
             </div>
       
-           
-      
       
 
 
@@ -331,13 +322,7 @@
                         <label>Invoice#*</label>
                     </div>
                     <div class="col-sm-12 col-md-3 col-lg-3">
-                        <input type="text" class="form-control text-dark bg-light" id="" {% if eway_id.eway_bill_number %} value="{{ eway_id.eway_bill_number }}" placeholder="{{ eway_id.eway_bill_number }}" {% else %} value="EWB-01" placeholder="EWB-01" {% endif %} name="invoiceno"
-                        hx-post="{% url 'check_eway_num_valid' %}"
-                        hx-trigger="keyup delay:0s"
-                        hx-target="#check_payment_num_valid_target"
-                        required
-                        >
-                        <div id="check_eway_num_valid_target">asd</div>
+                        <input type="text" class="form-control text-dark bg-light" {% if eway_id.eway_bill_number %} value="{{ eway_id.eway_bill_number }}" placeholder="{{ eway_id.eway_bill_number }}" {% else %} value="EWB-01" placeholder="EWB-01" {% endif %} id="invoiceno" name="invoiceno">
                     </div>
                     <div class="col-sm-12 col-md-1 col-lg-1 col-form-label">
                         <label>Date</label>
@@ -346,12 +331,12 @@
                         <input type="date" name="date" id="dateInput" class="form-control bg-light text-dark" style="float: left;">
                     </div>
                 </div>
-                <div class="row mt-2 mb-2 form-group" id="cgstin_row">
+                <div class="row mt-2 mb-2" id="cgstin_row">
                   <div class="col-md-3">
-                    <label >Ref No.</label>
+                    <label for="gstin_inp">Ref No.</label>
                   </div>
                   <div class="col-md-6">
-                    <input type="text" class="form-control text-dark bg-light"  id="" {% if eway_id.ref_number %} value="{{ eway_id.ref_number }}"{% else %}value="01"{% endif %} name="cgstin_inp" readonly>
+                    <input type="text" class="form-control text-dark bg-light" {% if eway_id.ref_number %} value="{{ eway_id.ref_number }}"{% else %}value="01"{% endif %} id="cgstin_inp" name="cgstin_inp" >
                   </div>
                 </div>
                 <script>
@@ -2421,8 +2406,8 @@
         dataType: "json",
         data: {}, // You can pass additional data if needed
         success: function(data) {
-            var dropdown = $('#customer');
-            dropdown.empty();
+            // var dropdown = $('#customer');
+            // dropdown.empty();
             $.each(data, function(key, value) {
             var optionText = value[1];
             var optionValue = key;
@@ -4590,7 +4575,7 @@ $('#transportForm').submit(function(event) {
             });
         });
     </script>
-    <script>
+    <!-- <script>
       $(document).ready(function() {
     $('#customer').change(function() {
 
@@ -4648,7 +4633,7 @@ $('#transportForm').submit(function(event) {
         });
     });
 });
-    </script>
+    </script> -->
     <!-- Add your existing HTML content here -->
 <!-- payment modal -->
 
@@ -4796,8 +4781,10 @@ function reloadPayment() {
     gstNumberInput.value = gstNumber;
 
   });
+</script>
 
-  $('#customer_list').on('click',function(){
+<script>
+   $('#customer_list').on('click',function(){
     $('#custom_dropdowns').toggle()
   })
   $('#custom_dropdowns').on('click',function(){
@@ -4826,6 +4813,5 @@ function reloadPayment() {
     })
   })
 </script>
-
 
 {% endblock %}

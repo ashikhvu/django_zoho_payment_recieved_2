@@ -13521,7 +13521,7 @@ def unit_get_rate(request):
         
 def create_ewaybillz(request):
     
-    
+    print('\nentered\n')
     if request.method == 'POST':
         user_id=request.user.id
         user=User.objects.get(id=user_id)
@@ -13584,7 +13584,7 @@ def create_ewaybillz(request):
 
         if EwaybillIdModel.objects.filter(user=request.user.id).exists():
             eway_id = EwaybillIdModel.objects.filter(user=request.user.id).last()
-            if invoiceno != eway_id.invoiceno:
+            if invoiceno != eway_id.eway_bill_number:
                 ref_num = int(eway_bill.id)+1
                 eway_id.ref_number = f'{ref_num:02}'
                 eway_id.save()
@@ -13595,7 +13595,7 @@ def create_ewaybillz(request):
                 eway_id.ref_number = f'{ref_num:02}'
 
                 pay_rec_num = int(eway_id.id)+1
-                eway_id.pay_rec_number = f'EWB-{pay_rec_num:02}'
+                eway_id.eway_bill_number = f'EWB-{pay_rec_num:02}'
                 eway_id.save()
         else:
             eway_id = EwaybillIdModel(user=user)
@@ -13604,7 +13604,7 @@ def create_ewaybillz(request):
             eway_id.ref_number = f'{ref_num:02}'
 
             pay_rec_num = int(eway_id.id)+1
-            eway_id.pay_rec_number = f'EWB-{pay_rec_num:02}'
+            eway_id.eway_bill_number = f'EWB-{pay_rec_num:02}'
             eway_id.save()
 
         items = request.POST.getlist("item[]")
@@ -21759,7 +21759,7 @@ def import_eway_list(request):
 
 @login_required(login_url='login')
 def ewaycreate_get_customer_details(request):
-    cust = customer.objects.get(id=request.POST.get('customer_id'))
+    cust = customer.objects.get(id=request.POST.get('customerzz'))
     return TemplateResponse(request,'ewaycreate_get_customer_details.html',{"cust":cust})
 
 
