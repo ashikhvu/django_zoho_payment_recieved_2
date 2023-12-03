@@ -322,7 +322,13 @@
                         <label>Invoice#*</label>
                     </div>
                     <div class="col-sm-12 col-md-3 col-lg-3">
-                        <input type="text" class="form-control text-dark bg-light" {% if eway_id.eway_bill_number %} value="{{ eway_id.eway_bill_number }}" placeholder="{{ eway_id.eway_bill_number }}" {% else %} value="EWB-01" placeholder="EWB-01" {% endif %} id="invoiceno" name="invoiceno">
+                        <input type="text" class="form-control text-dark bg-light" {% if eway_id.eway_bill_number %} value="{{ eway_id.eway_bill_number }}" placeholder="{{ eway_id.eway_bill_number }}" {% else %} value="EWB-01" placeholder="EWB-01" {% endif %} id="invoiceno" name="invoiceno"
+                        hx-post="{% url 'check_eway_num_valid' %}"
+                        hx-trigger="keyup delay:0s"
+                        hx-target="#check_payment_num_valid_target"
+                        required
+                        >
+                        <div id="check_payment_num_valid_target"></div>
                     </div>
                     <div class="col-sm-12 col-md-1 col-lg-1 col-form-label">
                         <label>Date</label>
@@ -336,7 +342,7 @@
                     <label for="gstin_inp">Ref No.</label>
                   </div>
                   <div class="col-md-6">
-                    <input type="text" class="form-control text-dark bg-light" {% if eway_id.ref_number %} value="{{ eway_id.ref_number }}"{% else %}value="01"{% endif %} id="cgstin_inp" name="cgstin_inp" >
+                    <input type="text" class="form-control text-dark bg-light" {% if eway_id.ref_number %} value="{{ eway_id.ref_number }}"{% else %}value="01"{% endif %} id="cgstin_inp" name="cgstin_inp" readonly>
                   </div>
                 </div>
                 <script>
