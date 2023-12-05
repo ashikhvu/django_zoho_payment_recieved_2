@@ -21936,8 +21936,15 @@ def import_eway_bill(request):
             if transportation.lower() == 'bus' or transportation.lower() == 'car' or transportation.lower() == 'train':
                 pass
             else:
-                t_data = Transportation.objects.get(user=user,method=transportation)
-                transportation = t_data.method
+                if Transportation.objects.filter(user=user.id,method=transportation).exists():
+                    try:
+                        t_data = Transportation.objects.get(user=user.id,method=transportation)
+                    except:
+                        t_data = Transportation.objects.filter(user=user.id,method=transportation).first()
+                    transportation = t_data.method
+                else:
+                    messages.info(request,"Transportaion entered doesn't exist , create the transportation option first")
+                    return redirect('ewaylistout')
             km = km
             vno = veh_no
             
@@ -21990,7 +21997,7 @@ def import_eway_bill(request):
                     eway_id.ref_number = f'{ref_num:02}'
                     eway_id.save()
                 else:
-                    eway_id = EwaybillIdModel(user=user)
+                    eway_id = EwaybillIdModel(user=user.id)
                     eway_id.save()
                     ref_num = int(eway_bill.id)+1
                     eway_id.ref_number = f'{ref_num:02}'
@@ -21999,7 +22006,7 @@ def import_eway_bill(request):
                     eway_id.eway_bill_number = f'EWB-{pay_rec_num:02}'
                     eway_id.save()
             else:
-                eway_id = EwaybillIdModel(user=user)
+                eway_id = EwaybillIdModel(user=user.id)
                 eway_id.save()
                 ref_num = int(eway_bill.id)+1
                 eway_id.ref_number = f'{ref_num:02}'
@@ -22049,7 +22056,7 @@ def import_eway_bill(request):
 
         return redirect('ewaylistout')
     
-    return render(request, 'ewaycreate.html')
+    return redirect('ewaylistout')
 
           
 
