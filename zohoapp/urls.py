@@ -998,6 +998,12 @@ urlpatterns = [
     path('import_eway_list',views.import_eway_list,name='import_eway_list'),
     path('ewaycreate_get_customer_details',views.ewaycreate_get_customer_details,name='ewaycreate_get_customer_details'),
     path('check_eway_num_valid',views.check_eway_num_valid,name='check_eway_num_valid'),
+    path('access_vehicle_number',views.access_vehicle_number,name='access_vehicle_number'),
+    # path('get_item_hsn_eway',views.get_item_hsn_eway,name='get_item_hsn_eway'),
+    path('eway_add_comment/<int:pk>',views.eway_add_comment,name='eway_add_comment'),
+    path('ewaysend_mail/<int:pk>',views.ewaysend_mail,name='ewaysend_mail'),
+    path('import_eway_bill',views.import_eway_bill,name='import_eway_bill'),
+
 
     #==============================================  ASHIKH VU (end) ================================================
     

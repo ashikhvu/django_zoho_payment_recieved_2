@@ -13420,9 +13420,14 @@ def recurbills_pay_eway(request):
         
 def add_transportation(request):
     if request.method == 'POST':
-        transportation_method = request.POST.get('method')
+        
+        print('\n------------enterd-----------\n')
+        user = User.objects.get(id=request.user.id)
+        transportation_method = request.POST.get('trans_method')
+        type = request.POST.get('trans_type')
+        print(transportation_method,type)
         if transportation_method:
-            transportation = Transportation(method=transportation_method)
+            transportation = Transportation(method=transportation_method,type=type,user=user)
             transportation.save()
             return JsonResponse({'message': 'Transportation added successfully.'})
         else:
@@ -13539,6 +13544,11 @@ def create_ewaybillz(request):
         addb = request.POST.get('addb')
         srcofsupply = request.POST.get('srcofsupply')
         transportation = request.POST.get('transportation')
+        if transportation.lower() == 'bus' or transportation.lower() == 'car' or transportation.lower() == 'train':
+            pass
+        else:
+            t_data = Transportation.objects.get(id=transportation)
+            transportation = t_data.method
         km = request.POST.get('km')
         vno = request.POST.get('vno')
         
@@ -13608,24 +13618,26 @@ def create_ewaybillz(request):
             eway_id.save()
 
         items = request.POST.getlist("item[]")
+        hsn = request.POST.getlist('hsn[]')
         quantities = request.POST.getlist("quantity[]")
         rates = request.POST.getlist("rate[]")
         taxes = request.POST.getlist("tax[]")
         discounts = request.POST.getlist("discount[]")
         amounts = request.POST.getlist("amount[]")
         
-        if len(items) == len(quantities) == len(rates) == len(discounts) == len(taxes) == len(amounts):
+        if len(items) == len(quantities) == len(rates) == len(discounts) == len(taxes) == len(amounts) == len(hsn):
             for i in range(len(items)):
                 EWayBillItem.objects.create(
                     eway_bill=eway_bill,
                     item=items[i],
+                    hsn=hsn[i],
                     quantity=quantities[i],
                     rate=rates[i],
                     tax=taxes[i],
                     discount=discounts[i],
                     amount=amounts[i],
                 )
-
+     
             return redirect('ewaylistout')
     
     return render(request, 'ewaycreate.html')
@@ -13633,6 +13645,10 @@ def create_ewaybillz(request):
 def ewayoverview(request,id):
     eway=EWayBill.objects.filter(user=request.user)
     ewayi=EWayBill.objects.filter(id=id)
+
+    eway_single = EWayBill.objects.get(id=id)
+    comments = EwayComments.objects.filter(user=request.user.id,eway=eway_single.id)
+
     company=company_details.objects.get(user=request.user)
     ewayb = EWayBillItem.objects.filter(eway_bill_id=id)  # Fetch items related to the EWayBill id
     projc = get_object_or_404(EWayBill, id=id)
@@ -13641,7 +13657,8 @@ def ewayoverview(request,id):
         if comment_text:
             projc.comment = comment_text  # Set the comment field of the specific project object
             projc.save()  # Save the project object with the updated comment
-    return render(request, 'ewayoverview.html',{'eway':eway,"ewayi":ewayi,'ewayb':ewayb,'projc':projc,'company':company})
+    return render(request, 'ewayoverview.html',{'eway':eway,"ewayi":ewayi,'ewayb':ewayb,'projc':projc,'company':company,
+                                                "eway_single":eway_single,"comments":comments})
     
     
 def delete_ewaybills(request, id):
@@ -13771,8 +13788,8 @@ def ewaycommentdb(request, id):
     return redirect('ewayoverview', id=id)
     
 def get_transportation_options(request):
-    transportation_options = Transportation.objects.all().values_list('method', flat=True)
-    options_list = list(transportation_options)
+    transportation_options = Transportation.objects.all().values_list('id','method')
+    options_list = [{'id': item[0], 'method': item[1]} for item in transportation_options]
     return JsonResponse({'options': options_list})
     
 def filter_invoice_draft(request):
@@ -21366,6 +21383,7 @@ def download_pay_rec_sampleImportFile(request):
 @login_required(login_url='login')
 def payment_recieved_overview(request,pk):
     pay_datas = PaymentRecievedModel.objects.filter(user=request.user.id)
+    company=company_details.objects.get(user=request.user)
     if not pay_datas.exists():
         return redirect('payment_reciedved_list_out')
     if pk == 0:
@@ -21377,7 +21395,8 @@ def payment_recieved_overview(request,pk):
     return render(request,'payment_recieved_overview.html',{"pay_datas":pay_datas,
                                                             "pay_data":pay_data,
                                                             'all_inv_data':all_inv_data,
-                                                            "comments":comments})
+                                                            "comments":comments,
+                                                            "company":company})
 
 @login_required(login_url='login')
 def payment_recieved_overview_sort_by_name(request,pk):
@@ -21705,29 +21724,7 @@ def download_pdf_payment_recieved(request, pk):
         response['Content-Disposition'] = f'attachment; filename="{pay_data.file.name}"'
         return response
 
-@login_required(login_url='login')
-def download_ebay_sampleImportFile(request):
-    
-    eway_data = [['Date','Transactions','Customer Name','Customer Email','Customer GSTIN','Amount'], 
-                  ['2023-11-05', '02', 'praveen ss', 'praveen@gmail.com', '22AAAAA0000A1Z5','250'], 
-                  ['2023-06-25', '03', 'saumya ss', 'saumya@gmail.com', '22AAAAA0000A1Z5','250']]
-    wb = Workbook()
 
-    sheet1 = wb.active
-    sheet1.title = 'Sheet1'
-
-    # Populate the sheets with data
-    for row in eway_data:
-        sheet1.append(row)
-
-    # Create a response with the Excel file
-    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = 'attachment; filename=eway_list.xlsx'
-
-    # Save the workbook to the response
-    wb.save(response)
-
-    return response
 
 @login_required(login_url='login')
 def import_eway_list(request):
@@ -21779,4 +21776,281 @@ def check_eway_num_valid(request):
             return HttpResponse("<span class='text-danger'>Eway Number is not Continues</span>")
         else:
             return HttpResponse("")
+
+@login_required(login_url='login')
+def access_vehicle_number(request):
+    if request.method=='POST':
+        trans = request.POST.get('transportation')
+        trans = trans.lower()
+        if trans == 'car' or trans == 'bus' or trans == 'train':
+            if trans == 'car' or trans == 'bus':
+                return HttpResponse('''
+                    <div class="form-group row mt-4" id="veh_no">
+                    <div class="col-sm-12 col-md-3 col-lg-3 col-form-label"><label>Vehicle Number</label></div>
+                    <div class="col-sm-12 col-md-6 col-lg-6">
+                        <input type="text" class="form-control bg-light text-dark" name="vno" placeholder="KL XX AA 1234" required>
+                    </div>
+                ''')
+            else:
+                return HttpResponse("")
+        else:
+            trans_data = Transportation.objects.get(id=trans)
+            if trans_data.type == 'road':
+                return HttpResponse('''
+                    <div class="form-group row mt-4" id="veh_no">
+                    <div class="col-sm-12 col-md-3 col-lg-3 col-form-label"><label>Vehicle Number</label></div>
+                    <div class="col-sm-12 col-md-6 col-lg-6">
+                        <input type="text" class="form-control bg-light text-dark" name="vno" placeholder="KL XX AA 1234" required>
+                    </div>
+                ''')
+            else:
+                HttpResponse("")
+        return HttpResponse("")
+    return HttpResponse("")
+    
+
+@login_required(login_url='login')
+def get_item_hsn_eway(request):
+    if request.method == "POST":
+        item = request.POST.get('item[]')
+        item_data = AddItem.objects.get(Name=item)
+        return HttpResponse(f'<input class="form-control text-dark w-100" value="{item_data.hsn}">')
+    return HttpResponse(f'<input class="form-control text-dark w-100" value="0">')
+
+
+
+@login_required(login_url='login')
+def eway_add_comment(request,pk):
+    if request.method=="POST":
+        user = User.objects.get(id=request.user.id)
+        eway = EWayBill.objects.get(id=pk)
+        title = request.POST.get('ash_title')
+        comment = request.POST.get('ash_comment')
+        comment_data = EwayComments(user=user,title=title,comment=comment,eway=eway)
+        comment_data.save()
+        return redirect('ewayoverview',id=pk)
+    return redirect('ewayoverview',id=pk)
+    
+@login_required(login_url='login')
+def ewaysend_mail(request,pk):
+    print('asdasd')
+    eway = EWayBill.objects.get(id=pk)
+    if request.method == 'POST':
+        subject =request.POST['subject']
+        message = request.POST['messege']
+        email = request.POST['email']
+        files = request.FILES.getlist('attach')
+
+        try:
+            mail = EmailMessage(subject, message, settings.EMAIL_HOST_USER, [email])
+            for f in files:
+                mail.attach(f.name, f.read(), f.content_type)
+            mail.send()
+            return render(request, 'customermail.html')
+        except:
+            return render(request, 'customermail.html')
+
+    return render(request, 'ewaysend_mail.html',{'eway':eway})
+
+
+@login_required(login_url='login')
+def download_ebay_sampleImportFile(request):
+    eway_data = [['Sl NO','Document Type','Transaction Sub Type','Customer Name','Customer Email ID','Address','Billing Address','Place of Supply','Invoice','Date','Transaction Type','Transportation','Kilometer','Vehicle Number','Sub Total','SGST','CGST','IGST','Tax Amount','Shipping Charge','Adjustment','Total','Customer Note','Terms & Conditions'], 
+                ['1', 'invoices', 'supply', 'mr praveen ss', 'praveen@gmail.com','ernakulam','ernakulam, pin 683574','KL','EWB-01','2023-10-05','goods','truck','12','KL7G6253','596','35.76','35.76','0','71.52','0','0','667.52','',''], 
+                ['2', 'credit note', 'export', 'mr soumya ss', 'saumya@gmail.com','kakkanad','kakkanad, pin 683580','KL','EWB-02','2023-11-01','goods','car','8','KL7G7485','798','0','0','0','0','0','0','798','','']]
+    items_table_data = [['Eway Bill no.','Item','Quantity','Discount','Tax','Amount'],
+                        ['1','apple','13','0','12','260'],
+                        ['1','orange','16','0','12','336'],
+                        ['2','orange','27','0','0','567'],
+                        ['2','orange','21','0','0','231']]
+    wb = Workbook()
+    sheet1 = wb.active
+    sheet1.title = 'EwayBill'
+    for row in eway_data:
+        sheet1.append(row)
+    sheet2 = wb.create_sheet(title='Items')
+    for row in items_table_data:
+        sheet2.append(row)
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=eway_bill.xlsx'
+    wb.save(response)
+    return response
+
+@login_required(login_url='login')
+def import_eway_bill(request):
+    if request.method == "POST" and 'excel_file' in request.FILES:
+        excel_file = request.FILES['excel_file']
+        wb = load_workbook(excel_file)
+        
+        ws1 = wb["EwayBill"]
+        eway_columns = ['Sl NO','Document Type','Transaction Sub Type','Customer Name','Customer Email ID','Address','Billing Address','Place of Supply','Invoice','Date','Transaction Type','Transportation','Kilometer','Vehicle Number','Sub Total','SGST','CGST','IGST','Tax Amount','Shipping Charge','Adjustment','Total','Customer Note','Terms & Conditions']
+        eway_sheet = [cell.value for cell in ws1[1]]
+        if eway_sheet != eway_columns:
+          print('invalid sheet')
+          messages.warning(request,'`EwayBill` sheet column names or order is not in the required formate.! Please check.')
+          return redirect(request.META.get('HTTP_REFERER'))
+
+        for row in ws1.iter_rows(min_row=2, values_only=True):
+            sl_no,doc_type,trans_sub_type,name,mail,add,bill_add,place,invoice,date,trans_type,transport,km,veh_no,sub_total,sgst,cgst,igst,tax_amount,ship_charge,adj,total,note,terms = row
+            if sl_no == None or doc_type == None or trans_sub_type == None or name == None or mail == None or add == None or place == None or invoice == None or date == None or trans_type == None or transport == None or km == None or sub_total == None or tax_amount == None or ship_charge == None or adj == None or total == None:
+                messages.warning(request,'`EwayBill` sheet entries missing required fields.! Please check.')
+                return redirect(request.META.get('HTTP_REFERER'))
+        
+        # checking items sheet columns
+        ws2 = wb["Items"]
+        items_columns = ['Eway Bill no.','Item','Quantity','Discount','Tax','Amount']
+        items_sheet = [cell.value for cell in ws2[1]]
+        if items_sheet != items_columns:
+            print('invalid sheet')
+            messages.warning(request,'`Items` sheet column names or order is not in the required formate.! Please check.')
+            return redirect(request.META.get('HTTP_REFERER'))
+
+        # check the type field is valid or not it
+        ws2 = wb['Items']
+        for row in ws2.iter_rows(min_row=2, values_only=True):
+            eway_bill_no, item, qty,disc,tax,amnt = row
+            if eway_bill_no == None or  item == None or  qty == None or disc == None or tax == None or amnt == None:
+                messages.warning(request,'`Items` sheet entries missing required fields.! Please check.')
+                return redirect(request.META.get('HTTP_REFERER'))
+
+        index_table = []
+        ws1 = wb['EwayBill']
+        for row in ws1.iter_rows(min_row=2, values_only=True):
+            sl_no,doc_type,trans_sub_type,name,mail,add,bill_add,place,invoice,date,trans_type,transport,km,veh_no,sub_total,sgst,cgst,igst,tax_amount,ship_charge,adj,total,note,terms = row
+            user_id=request.user.id
+            user=User.objects.get(id=user_id)
+
+            doc = doc_type
+            transsub = trans_sub_type
+            customerzz = customer.objects.get(customerEmail=mail)
+            cemail= mail
+            cgst_trt_inp = customerzz.GSTTreatment
+            cgstin_inp = customerzz.GSTIN
+            invoiceno = invoice
+            date = date
+            trans = trans_type
+            adda = add
+            addb = bill_add
+            srcofsupply = place
+            transportation = transport
+            if transportation.lower() == 'bus' or transportation.lower() == 'car' or transportation.lower() == 'train':
+                pass
+            else:
+                t_data = Transportation.objects.get(user=user,method=transportation)
+                transportation = t_data.method
+            km = km
+            vno = veh_no
+            
+            sub_total =sub_total
+            sgst=sgst
+            cgst=cgst
+            igst=igst
+            tax = tax_amount
+            shipping_charge= ship_charge
+            adj= adj
+            grand_total=total
+            note=note
+            cat = customerzz
+            eway_bill = EWayBill.objects.create(
+                
+                doc=doc,
+                transsub=transsub,
+                customerzz=customerzz,
+                cemail=cemail,
+                cgst_trt_inp=cgst_trt_inp,
+                cgstin_inp=cgstin_inp,
+                invoiceno=invoiceno,
+                date=date,
+                trans=trans,
+                adda=adda,
+                addb=addb,
+                srcofsupply=srcofsupply,
+                transportation=transportation,
+                km=km,
+                vno=vno,
+                note=note,
+                grand_total=grand_total,
+                adj=adj,
+                shipping_charge=shipping_charge,
+                tax=tax,
+                igst=igst,
+                cgst=cgst,
+                sgst=sgst,
+                sub_total=sub_total,
+                user=user,
+                cust=cat,
+            )
+
+            index_table.append({sl_no:eway_bill.id})
+
+            if EwaybillIdModel.objects.filter(user=request.user.id).exists():
+                eway_id = EwaybillIdModel.objects.filter(user=request.user.id).last()
+                if invoiceno != eway_id.eway_bill_number:
+                    ref_num = int(eway_bill.id)+1
+                    eway_id.ref_number = f'{ref_num:02}'
+                    eway_id.save()
+                else:
+                    eway_id = EwaybillIdModel(user=user)
+                    eway_id.save()
+                    ref_num = int(eway_bill.id)+1
+                    eway_id.ref_number = f'{ref_num:02}'
+
+                    pay_rec_num = int(eway_id.id)+1
+                    eway_id.eway_bill_number = f'EWB-{pay_rec_num:02}'
+                    eway_id.save()
+            else:
+                eway_id = EwaybillIdModel(user=user)
+                eway_id.save()
+                ref_num = int(eway_bill.id)+1
+                eway_id.ref_number = f'{ref_num:02}'
+
+                pay_rec_num = int(eway_id.id)+1
+                eway_id.eway_bill_number = f'EWB-{pay_rec_num:02}'
+                eway_id.save()
+
+        ws2 = wb['Items']
+        for row in ws2.iter_rows(min_row=2, values_only=True):
+            eway_bill_no, item, qty,disc,tax,amnt = row
+
+            for i in index_table:
+                for j in i.keys():
+                    if eway_bill_no == j:
+                        eway_bill = EWayBill.objects.get(id=i[j])
+                        break
+
+            items = item
+
+            try:
+                hsn = AddItem.objects.get(Name=items,user=request.user.id).hsn
+            except:
+                hsn = AddItem.objects.filter(Name=items,user=request.user.id).first().hsn
+
+            quantities = qty
+
+            try:
+                rates = AddItem.objects.get(Name=items,user=request.user.id).rate
+            except:
+                rates = AddItem.objects.filter(Name=items,user=request.user.id).first().rate
+
+            taxes = tax
+            discounts = disc
+            amounts = amnt
+            
+            EWayBillItem.objects.create(
+                eway_bill=eway_bill,
+                item=items,
+                hsn=hsn,
+                quantity=quantities,
+                rate=rates,
+                tax=taxes,
+                discount=discounts,
+                amount=amounts,
+            )
+
+        return redirect('ewaylistout')
+    
+    return render(request, 'ewaycreate.html')
+
+          
+
 #==============================================  ASHIKH VU (end) ================================================

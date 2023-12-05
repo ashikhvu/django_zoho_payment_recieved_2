@@ -1268,6 +1268,8 @@ class transactions(models.Model):
     adjacname=models.CharField(max_length=220,default='', null=True, blank=True)
     
 class Transportation(models.Model):
+    user = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True)
+    type = models.CharField(max_length=255,null=True)
     method = models.CharField(max_length=100)
 
     def __str__(self):
@@ -1306,6 +1308,7 @@ class EWayBill(models.Model):
 class EWayBillItem(models.Model):
     eway_bill = models.ForeignKey(EWayBill, on_delete=models.CASCADE)
     item = models.CharField(max_length=100,null=True,blank=True)
+    hsn = models.CharField(max_length=255,null=True,blank=True)
     quantity = models.DecimalField(max_digits=10, decimal_places=2,null=True,blank=True)
     rate = models.DecimalField(max_digits=10, decimal_places=2,null=True,blank=True)
     tax = models.DecimalField(max_digits=10, decimal_places=2,null=True,blank=True)
@@ -1705,5 +1708,12 @@ class EwaybillIdModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True,blank=True)
     ref_number = models.CharField(max_length=255,null=True)
     eway_bill_number = models.CharField(max_length=255,null=True)
+
+class EwayComments(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True,blank=True)
+    title = models.CharField(max_length=255,null=True,blank=True)
+    comment = models.TextField(null=True,blank=True)
+    eway = models.ForeignKey(EWayBill,on_delete=models.CASCADE,null=True,blank=True)
+    date = models.DateTimeField(auto_now_add=True,null=True)
 
 #==============================================  ASHIKH VU (end) ================================================

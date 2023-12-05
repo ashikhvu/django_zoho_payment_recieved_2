@@ -204,11 +204,14 @@
     #custom_dropdowns{
       display: none;
     }
+    ::-webkit-scrollbar{
+      display: none;
+    }
 </style>
 <!-- <section > -->
-    <div class="fixed-top" style="top: 7rem; margin-left: 18rem;" >
+    <div class="container-fluid" >
      
-          <div style="height: 600px;overflow-y: scroll;">
+          <div>
              <h3  class="mb-3  text-white " style="font-size: 2rem;">New E-way Bill</h3><br>     
       
             <form  method="post" action="{% url 'create_ewaybillz' %}"  enctype="multipart/form-data" class="">
@@ -369,9 +372,17 @@
                     </div>
                 </div>
                 <div class="form-group row mt-4">
-                    <div class="col-sm-12 col-md-3 col-lg-3 col-form-label"><label>Address Details 2</label></div>
+                  <div class="col-sm-12 col-md-3 col-lg-3 col-form-label"><label>Billing Address</label></div>
+                  <div class="col-sm-12 col-md-6 col-lg-6" >
+                      <div class="form-check form-switch">
+                        <input id="checkbox_bill_address" type="checkbox" class="form-check-input" style="margin-inline-start: -1rem;">
+                      </div>
+                  </div>
+              </div>
+                <div hidden id="billaddress_input" class="form-group row mt-4 hide_transition">
+                    <div class="col-sm-12 col-md-3 col-lg-3 col-form-label"><label></label></div>
                     <div class="col-sm-12 col-md-6 col-lg-6">
-                        <input  type="text" class="form-control bg-light text-dark" name="addb" >
+                        <input id="billaddress_input_input" type="text" class="form-control bg-light text-dark" name="addb" >
                     </div>
                 </div>
                 <div class="form-group row mt-4">
@@ -424,33 +435,41 @@
                 <div class="form-group row mt-4">
                     <div class="col-sm-12 col-md-3 col-lg-3 col-form-label"><label>Transportation</label></div>
                     <div class="col-sm-12 col-md-6 col-lg-6 d-flex align-items-center">
-                        <select name="transportation" id="transportation" class="form-control bg-light text-dark">
-                            <option value="" hidden selected></option>
+                        <select name="transportation" id="transportation" class="form-control bg-light text-dark"
+                        hx-post="{% url 'access_vehicle_number' %}"
+                        hx-trigger="change delay:0s"
+                        hx-target="#access_vehicle_number_target"
+                        >
+                            <option value="" hidden selected>Select an option</option>
                             <option value="Bus">Bus</option>
                             <option value="Car">Car</option>
                             <option value="Train">Train</option>
                             {% for p in trans %}
-                            <option value="{{p.method}}">{{p.method}}</option>
+                            <option value="{{p.id}}" value2="{{ p.type }}">{{p.method}}</option>
                             {% endfor %}
                         </select>
                         <button type="button" class="btn btn-sm text-white" style="background-color: rgb(210, 132, 30);" id="create-trans">+</button><br><br><br>
                     </div>
                 </div>
+                <!-- vehicle number getting by using "access_vehicle_number" view function which excecute only when there an input change heppens abouve -->
+                <div id="access_vehicle_number_target">
+                  <div class="form-group row mt-4" id="veh_no">
+                    <div class="col-sm-12 col-md-3 col-lg-3 col-form-label"><label>Vehicle Number</label></div>
+                    <div class="col-sm-12 col-md-6 col-lg-6">
+                        <input type="text" class="form-control bg-light text-dark" name="vno" placeholder="KL XX AA 1234">
+                    </div>
+                </div>
+                </div>
                 <div class="form-group row mt-4">
                     <div class="col-sm-12 col-md-3 col-lg-3 col-form-label"><label>Kilometer</label></div>
                     <div class="col-sm-12 col-md-6 col-lg-6">
-                        <input  type="text" class="form-control bg-light text-dark" name="km" >     
+                        <input  type="text" class="form-control bg-light text-dark" name="km" required>     
                          
      
                     </div>
                     
                 </div>
-                <div class="form-group row mt-4">
-                  <div class="col-sm-12 col-md-3 col-lg-3 col-form-label"><label>Vehicle Number</label></div>
-                  <div class="col-sm-12 col-md-6 col-lg-6">
-                      <input type="text" class="form-control bg-light text-dark" name="vno" placeholder="KL XX AA 1234">
-                  </div>
-              </div>
+                
               
 
 
@@ -461,25 +480,31 @@
                       <thead>
                         <tr>
                           <th>Item<br><a href="" data-toggle="modal" data-target="#newitem" class="text-capitalize">+ Item</a></th>
-                          
+                          <th>HSN</th>
                           <th class="text-right">Quantity</th>
                           <th class="text-right">Rate</th>
                           <th class="text-right">Discount</th>
                           <th class="text-right">Tax</th>
                           <th class="text-right">Amount</th>
+                          <th></th>
+                          <th></th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr id="row1">
                             <td style="width: 10%;">
                                 <div ><select
-                                        class='form-control bg-light text-dark border-0 item_select itm'
-                                        name='item[]' id='item1'>
+                                  class='form-control bg-light text-dark border-0 item_select itm'
+                                  name='item[]' id='item1'>
                                         <option value=" " selected disabled>Select Item</option>
                                         {% for i in item %}
                                           <option value="{{i.Name}}">{{ i.Name  }} </option>
                                         {% endfor %}
                                     </select></div>
+                            </td>
+
+                            <td style="width: 15%;">
+                                <input id="hsn_no1" type="text" name="hsn[]">
                             </td>
                             
                            
@@ -496,7 +521,7 @@
                                     value='0'>
                             </td>
                             <td style="width: 15%;" class='text-right '> <select name='tax[]' id='tax1'
-                                    class='form-control bg-light text-dark  text-right border-0 tax' onclick="toggleDateInput()">
+                                    class='form-control bg-light text-dark  text-right border-0 tax' onclick="toggleDateInput()" required>
                                     <optgroup class="text-center" label="GST">
                                       <option value="0" selected></option>
                                       <option value="0">0% GST(0%)</option>
@@ -618,9 +643,10 @@
                      <input style="width: 150px;margin-right: 2rem;" class="btn btn-danger mt-2" type="reset" value="Cancel">
                
                   
-                 
+                
                 </div>
               </form>
+              <br><br><br><br>
               <div class="modal fade" id="newvendor">
                 <div class="modal-dialog modal-xl">
                   <div class="modal-content" style="background: rgb(32, 35, 37);border-radius: 20px;">
@@ -2778,7 +2804,9 @@
                     </div>
                   </td>
           
-                 
+                  <td>
+                      <input type="text" id="hsn_no${rowCount}" name="hsn[]">
+                  </td>
                   
                   <td style="width: 13%;" class='text-right'>
                     <input type='number' id='qty${rowCount}' class='text-right bg-light text-dark qty form-control' name='quantity[]' value='0'>
@@ -2924,7 +2952,7 @@
             var clonedRow = row.clone(); // Clone the current row
             var newRowId = 'row' + rowCount; // Generate a new ID for the cloned row
             clonedRow.attr('id', newRowId); // Set the new ID for the cloned row
-          
+            // clonedRow.attr('name', newRowId);
             // Clone the options for tax, account, and item
             var currentItem = row.find('.item_select').val();
             clonedRow.find('.item_select').val(currentItem);
@@ -3107,6 +3135,7 @@
                             data2 = response.igst
                             data3 = response.pos
                             data4=response.place
+                            $('#hsn_no1').val(response.hsn)
                             document.getElementById('rate1').value = data
           
                             if (data3 == '{{ company.state }}') {
@@ -3139,6 +3168,7 @@
                             data1 = response.gst
                             data2 = response.igst
                             data3 = response.pos
+                            $('#hsn_no2').val(response.hsn)
                             document.getElementById('rate2').value = data
           
                             if (data3 == '{{ company.state }}') {
@@ -3171,6 +3201,7 @@
                             data1 = response.gst
                             data2 = response.igst
                             data3 = response.pos
+                            $('#hsn_no3').val(response.hsn)
                             document.getElementById('rate3').value = data
           
                             if (data3 == '{{ company.state }}') {
@@ -3203,6 +3234,7 @@
                             data1 = response.gst
                             data2 = response.igst
                             data3 = response.pos
+                            $('#hsn_no4').val(response.hsn)
                             document.getElementById('rate4').value = data
           
                             if (data3 == '{{ company.state }}') {
@@ -3235,6 +3267,7 @@
                             data1 = response.gst
                             data2 = response.igst
                             data3 = response.pos
+                            $('#hsn_no5').val(response.hsn)
                             document.getElementById('rate5').value = data
           
                             if (data3 == '{{ company.state }}') {
@@ -3267,6 +3300,7 @@
                             data1 = response.gst
                             data2 = response.igst
                             data3 = response.pos
+                            $('#hsn_no6').val(response.hsn)
                             document.getElementById('rate6').value = data
           
                             if (data3 == '{{ company.state }}') {
@@ -3299,6 +3333,7 @@
                             data1 = response.gst
                             data2 = response.igst
                             data3 = response.pos
+                            $('#hsn_no7').val(response.hsn)
                             document.getElementById('rate7').value = data
           
                             if (data3 == '{{ company.state }}') {
@@ -3331,6 +3366,7 @@
                             data1 = response.gst
                             data2 = response.igst
                             data3 = response.pos
+                            $('#hsn_no8').val(response.hsn)
                             document.getElementById('rate8').value = data
           
                             if (data3 == '{{ company.state }}') {
@@ -3363,6 +3399,7 @@
                             data1 = response.gst
                             data2 = response.igst
                             data3 = response.pos
+                            $('#hsn_no9').val(response.hsn)
                             document.getElementById('rate9').value = data
           
                             if (data3 == '{{ company.state }}') {
@@ -3395,6 +3432,7 @@
                             data1 = response.gst
                             data2 = response.igst
                             data3 = response.pos
+                            $('#hsn_no10').val(response.hsn)
                             document.getElementById('rate10').value = data
           
                             if (data3 == '{{ company.state }}') {
@@ -3427,6 +3465,7 @@
                             data1 = response.gst
                             data2 = response.igst
                             data3 = response.pos
+                            $('#hsn_no11').val(response.hsn)
                             document.getElementById('rate11').value = data
           
                             if (data3 == '{{ company.state }}') {
@@ -3459,6 +3498,7 @@
                             data1 = response.gst
                             data2 = response.igst
                             data3 = response.pos
+                            $('#hsn_no12').val(response.hsn)
                             document.getElementById('rate12').value = data
           
                             if (data3 == '{{ company.state }}') {
@@ -3491,6 +3531,7 @@
                             data1 = response.gst
                             data2 = response.igst
                             data3 = response.pos
+                            $('#hsn_no13').val(response.hsn)
                             document.getElementById('rate13').value = data
           
                             if (data3 == '{{ company.state }}') {
@@ -3523,6 +3564,7 @@
                             data1 = response.gst
                             data2 = response.igst
                             data3 = response.pos
+                            $('#hsn_no14').val(response.hsn)
                             document.getElementById('rate14').value = data
           
                             if (data3 == '{{ company.state }}') {
@@ -3555,6 +3597,7 @@
                             data1 = response.gst
                             data2 = response.igst
                             data3 = response.pos
+                            $('#hsn_no15').val(response.hsn)
                             document.getElementById('rate15').value = data
           
                             if (data3 == '{{ company.state }}') {
@@ -3587,6 +3630,7 @@
                             data1 = response.gst
                             data2 = response.igst
                             data3 = response.pos
+                            $('#hsn_no16').val(response.hsn)
                             document.getElementById('rate16').value = data
           
                             if (data3 == '{{ company.state }}') {
@@ -3619,6 +3663,7 @@
                             data1 = response.gst
                             data2 = response.igst
                             data3 = response.pos
+                            $('#hsn_no17').val(response.hsn)
                             document.getElementById('rate17').value = data
           
                             if (data3 == '{{ company.state }}') {
@@ -3651,6 +3696,7 @@
                             data1 = response.gst
                             data2 = response.igst
                             data3 = response.pos
+                            $('#hsn_no18').val(response.hsn)
                             document.getElementById('rate18').value = data
           
                             if (data3 == '{{ company.state }}') {
@@ -3683,6 +3729,7 @@
                             data1 = response.gst
                             data2 = response.igst
                             data3 = response.pos
+                            $('#hsn_no19').val(response.hsn)
                             document.getElementById('rate19').value = data
           
                             if (data3 == '{{ company.state }}') {
@@ -3715,6 +3762,7 @@
                             data1 = response.gst
                             data2 = response.igst
                             data3 = response.pos
+                            $('#hsn_no20').val(response.hsn)
                             document.getElementById('rate20').value = data
           
                             if (data3 == '{{ company.state }}') {
@@ -3747,6 +3795,7 @@
                             data1 = response.gst
                             data2 = response.igst
                             data3 = response.pos
+                            $('#hsn_no21').val(response.hsn)
                             document.getElementById('rate21').value = data
           
                             if (data3 == '{{ company.state }}') {
@@ -3754,7 +3803,7 @@
                                 document.getElementById('tgst21').value = data1
                             }
                             document.getElementById('tigst21').innerHTML = data2 + ' % IGST';
-                            document.getElementById('tigst21').value = data2
+                            document.getElementById('tigst21').value = data2  
           
                         }
                     });
@@ -3765,17 +3814,24 @@
             });
           </script>
           <!-- Modal for Transportation Input -->
-<div class="modal fade" id="transportModal" tabindex="-1" role="dialog" aria-labelledby="transportModalLabel" aria-hidden="true" style="z-index: 9999;">
+<div class="modal fade" id="transportModal" tabindex="-1" role="dialog" aria-labelledby="transportModalLabel" aria-hidden="true" style="z-index: 9999;margin-top: 3rem;">
   <div class="modal-dialog bg-dark" role="document">
       <div class="modal-content bg-dark">
           <div class="modal-body">
               <h1>Add Transportation</h1>
               <form id="transportForm">
                   {% csrf_token %}
-                  <input type="text" id="transportInput" class="form-control bg-light text-dark" placeholder="Transportation Method">
+                  <select id="trans_type" placeholder="asd" class="form-control text-dark mt-4" name="trans_type">
+                    <option value="" selected hidden >select a Transaportation type</option>
+                    <option value="air cargo">Air Cargo</option>
+                    <option value="road">Road</option>
+                    <option value="rail">Rail</option>
+                    <option value="water borne">Water Borne</option>
+                  </select>
+                  <input type="text" id="transportInput" class="form-control bg-light text-dark mt-2" placeholder="Transportation Method" name="trans_method">
                   <div class="modal-footer">
-                      <button type="submit" class="btn btn-warning">Save</button>
-                      <button type="button" class="btn btn-warning" data-dismiss="modal">Close</button>
+                      <button type="submit" class="btn btn-outline-success">Save</button>
+                      <button type="button" class="btn btn-outline-warning" data-bs-dismiss="modal">Close</button>
                   </div>
               </form>
           </div>
@@ -3804,7 +3860,7 @@ function updateTransportationOptions() {
 
             // Add the fetched transportation options to the dropdown
             response.options.forEach(function(option) {
-                $('#transportation').append('<option value="' + option + '">' + option + '</option>');
+                $('#transportation').append('<option value="' + option.id + '">' + option.method + '</option>');
             });
         },
         error: function(error) {
@@ -3826,13 +3882,15 @@ $('#transportForm').submit(function(event) {
     event.preventDefault(); // Prevent default form submission
     
     var transportationMethod = $('#transportInput').val();
+    var trans_type_here = $('#trans_type').val()
     if (transportationMethod.trim() !== '') {
         $.ajax({
             type: 'POST',
-            url: '/add-transportation/',  // URL from your Django URL configuration
+            url: '{% url "add_transportation" %}',  // URL from your Django URL configuration
             data: {
                 csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
-                method: transportationMethod
+                trans_method: transportationMethod,
+                trans_type:trans_type_here
             },
             success: function(response) {
                 console.log(response.message);
@@ -4817,6 +4875,23 @@ function reloadPayment() {
         $(this).hide()
       }
     })
+  })
+  $(document).ready(function(){
+    $('#checkbox_bill_address').on('change',function(){
+      if($(this).prop('checked'))
+      {
+        $('#billaddress_input').attr('hidden',false)
+        $('#billaddress_input_input').prop('required',true)
+      }
+      else{
+        $('#billaddress_input').attr('hidden',true)
+        $('#billaddress_input_input').val('')
+        $('#billaddress_input_input').prop('required',false)
+      }
+    })
+  })
+  $('#subtotal').on('change',function(){
+    
   })
 </script>
 

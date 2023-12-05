@@ -193,14 +193,15 @@
               <th class="text-light">Transaction Sub Type</th>
               <th class="text-light">Customer Name</th>
               <th class="text-light">Customer Email ID</th>
+              <th class="text-light">Address</th>
               <th class="text-light">Billing Address</th>
               <th class="text-light">Place of Supply</th>
               <th class="text-light">Invoice</th>
               <!-- <th class="text-light">Reference Number</th> -->
               <th class="text-light">Date</th>
               <th class="text-light">Transaction Type</th>
-              <th class="text-light">HSN Number</th>
-              <th class="text-light">SAC Number</th>
+              <!-- <th class="text-light">HSN Number</th>
+              <th class="text-light">SAC Number</th> -->
               <th class="text-light">Transportation</th>
               <th class="text-light">Kilometre</th>
               <th class="text-light">Vehicle Number</th>
@@ -227,7 +228,7 @@
               <small class="text-warning" for="">Document Type*-</small>
             </div>
             <div class="col-sm-12 col-lg-8">
-              <small class="text-warning" for="">Values must be Invoices,Credit Notes,Delivery Challans.</small>
+              <small class="text-warning" for="">Values must be equal to Sl No. off Eway Table.</small>
             </div>
           </div>
 
@@ -329,7 +330,7 @@
               <th class="text-light">Eway Bill no.</th>
               <th class="text-light">Item</th>
               <th class="text-light">Quantity</th>
-              <th class="text-light">Rate</th>
+              <!-- <th class="text-light">Rate</th> -->
               <th class="text-light">Discount</th>
               <th class="text-light">Tax</th>
               <th class="text-light">Amount</th>
@@ -367,14 +368,14 @@
             </div>
           </div>
 
-          <div class="row mt-1">
+          <!-- <div class="row mt-1">
             <div class="col-sm-12 col-lg-4">
               <small class="text-warning" for="">Rate*-</small>
             </div>
             <div class="col-sm-12 col-lg-8">
               <small class="text-warning" for="">Rate of the item.</small>
             </div>
-          </div>
+          </div> -->
 
           <div class="row mt-1">
             <div class="col-sm-12 col-lg-4">
@@ -408,7 +409,7 @@
 
         
         <hr class="mt-1">
-        <form action="{% url 'import_payment_recieved' %}" method="POST" enctype="multipart/form-data">
+        <form action="{% url 'import_eway_bill' %}" method="POST" enctype="multipart/form-data">
           {% csrf_token %}
           <label style="color: rgb(152, 152, 255);" class=" fw-bolder" for="">Download Sample Excel File</label>
               <a class="btn btn-outline-warning ms-5" href="{% url 'download_ebay_sampleImportFile' %}">Download</a>
