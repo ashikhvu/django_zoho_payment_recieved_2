@@ -134,7 +134,8 @@
    }
    .drop_hovers:hover
    {
-      background-color: rgb(5, 98, 0);
+      background-color: rgb(0, 149, 255);
+      color: rgb(255, 255, 255);
    }
    ::-webkit-scrollbar{
     display: none;
@@ -173,11 +174,11 @@
       </div>
       <div class="col-md-7 d-flex">
         <div id="custom_dropdowns" class="position-relative">
-          <div class="position-absolute bg-success p-1 rounded"  style="margin-top: 3rem;">
+          <div class="position-absolute bg-success p-1 rounded bg-light text-dark  border border-dark"  style="margin-top: 3rem;">
             <div id="custom-dropdown">
               <div style="overflow-y: auto;height: 10rem;">
                 {% for i in customers %}
-                <p class="text-light drop_hovers p-2 m-0"
+                <p class="drop_hovers p-2 m-0"
                 hx-post="{% url 'get_customer_details_for_pay_rec' %}"
                 hx-trigger="click delay:0s"
                 hx-target="#get_customer_details_target"
@@ -399,9 +400,9 @@
 </div>
 
     <div class="row mt-5 mb-3">
-      <input style="width: 150px;margin-right: 1vh;" type="submit" class="btn btn-outline-warning p-2 text-" value="Draft" name="Draft">
-      <input style="width: 150px;margin-right: 1vh;" type="submit" class="btn btn-outline-success p-2 text-" value="Update" name="Save">
-      <a style="width: 150px;"  type="reset" value="Cancel" class="btn btn-outline-danger p-2 text-" href="">Cancel</a>
+      <input style="width: 150px;margin-right: 1vh;" type="submit" class="btn btn-warning text-dark p-2 text-" value="Draft" name="Draft">
+      <input style="width: 150px;margin-right: 1vh;" type="submit" class="btn btn-warning text-dark p-2 text-" value="Update" name="Save">
+      <a style="width: 150px;"  type="reset" value="Cancel" class="btn btn-warning text-dark p-2 text-" href="">Cancel</a>
     </div>
   </form>
   

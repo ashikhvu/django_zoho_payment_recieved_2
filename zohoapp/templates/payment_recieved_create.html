@@ -134,7 +134,8 @@
    }
    .drop_hovers:hover
    {
-      background-color: rgb(5, 98, 0);
+      background-color: rgb(0, 149, 255);
+      color: rgb(255, 255, 255);
    }
    ::-webkit-scrollbar{
     display: none;
@@ -173,17 +174,21 @@
       </div>
       <div class="col-md-7 d-flex"> 
         <div id="custom_dropdowns" class="position-relative">
-          <div class="position-absolute bg-success p-1 rounded"  style="margin-top: 3rem;">
+          <div class="position-absolute bg-success rounded bg-light text-dark  border border-dark"  style="margin-top: 3rem;">
             <div id="custom-dropdown">
               <div style="overflow-y: auto;height: 10rem;">
+                {% if customers %}
                 {% for i in customers %}
-                <p class="text-light drop_hovers p-2 m-0"
+                <p class="drop_hovers ps-3 p-2 m-0"
                 hx-post="{% url 'get_customer_details_for_pay_rec' %}"
                 hx-trigger="click delay:0s"
                 hx-target="#get_customer_details_target"
                 >{{ i.customerName }}</p>
                 <span hidden>{{ i.id }}</span>
                 {% endfor %}
+                {% else %}
+                <h6 class="drop_hovers ps-3 p-2 m-0" style="cursor: not-allowed;pointer-events: none;">No customers are available</h6>
+                {% endif %}
               </div>
             </div>
           </div>
@@ -245,15 +250,20 @@
       </div>
 
       <div class="col-md-7">
-        <input id="prn_numbr" type="text" {% if payments %}value="{{ last.pay_rec_number }}" placeholder="{{ last.pay_rec_number }}"{% else %} value="PRN-01" placeholder="PRN-01" {% endif %} name="payments_recieved_number"
+        <input id="prn_numbr" type="text" {% if payments %}value="{{ last.pay_rec_number }}" placeholder="{{ last.pay_rec_number }}"{% endif %} name="payments_recieved_number"
         hx-post="{% url 'check_payment_num_valid' %}"
         hx-trigger="keyup delay:0s"
         hx-target="#check_payment_num_valid_target"
         required>
+        <!-- <input id="prn_numbr" type="text" {% if payments %}value="{{ last.pay_rec_number }}" placeholder="{{ last.pay_rec_number }}"{% else %} value="PRN-01" placeholder="PRN-01" {% endif %} name="payments_recieved_number" -->
+        <!-- hx-post="{% url 'check_payment_num_valid' %}" -->
+        <!-- hx-trigger="keyup delay:0s" -->
+        <!-- hx-target="#check_payment_num_valid_target" -->
+        <!-- required> -->
         <div id="check_payment_num_valid_target"></div>
       </div>
     </div>
-    eway_id
+
     <div class="row mt-3">
       <div class="col-md-3">
         <label for="prof_name" >Reference Number</label>
@@ -394,9 +404,9 @@
 </div>
 
     <div class="row mt-5 mb-3">
-      <input style="width: 150px;margin-right: 1vh;" type="submit" class="btn btn-outline-warning p-2 text-" value="Draft" name="Draft">
-      <input style="width: 150px;margin-right: 1vh;" type="submit" class="btn btn-outline-success p-2 text-" value="Save" name="Save">
-      <a style="width: 150px;"  type="reset" value="Cancel" class="btn btn-outline-danger p-2 text-" href="">Cancel</a>
+      <input style="width: 150px;margin-right: 1vh;" type="submit" class="btn btn-warning p-2 text-dark" value="Draft" name="Draft">
+      <input style="width: 150px;margin-right: 1vh;" type="submit" class="btn btn-warning p-2 text-dark" value="Save" name="Save">
+      <a style="width: 150px;"  type="reset" value="Cancel" class="btn btn-warning p-2 text-dark" href="">Cancel</a>
     </div>
   </form>
   

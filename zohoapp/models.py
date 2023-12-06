@@ -1681,6 +1681,7 @@ class PaymentRecievedModel(models.Model):
 
 class PaymentRecievedIdModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True,blank=True)
+    pattern = models.CharField(max_length=255,null=True)
     ref_number = models.CharField(max_length=255,null=True)
     pay_rec_number = models.CharField(max_length=255,null=True)
 
@@ -1706,6 +1707,7 @@ class PaymentRecievedComments(models.Model):
 
 class EwaybillIdModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True,blank=True)
+    pattern = models.CharField(max_length=255,null=True)
     ref_number = models.CharField(max_length=255,null=True)
     eway_bill_number = models.CharField(max_length=255,null=True)
 

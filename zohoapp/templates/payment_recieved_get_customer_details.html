@@ -53,11 +53,16 @@
     </div>
 
     <div class="col-md-7">
-      <input type="text" {% if payments %}value="{{ last.pay_rec_number }}" placeholder="{{ last.pay_rec_number }}"{% else %} value="PRN-01" placeholder="PRN-01" {% endif %} name="payments_recieved_number"
+      <input type="text" {% if payments %}value="{{ last.pay_rec_number }}" placeholder="{{ last.pay_rec_number }}"{% endif %} name="payments_recieved_number"
       hx-post="{% url 'check_payment_num_valid' %}"
       hx-trigger="keyup delay:0s"
       hx-target="#check_payment_num_valid_target"
       required>
+      <!-- <input type="text" {% if payments %}value="{{ last.pay_rec_number }}" placeholder="{{ last.pay_rec_number }}"{% else %} value="PRN-01" placeholder="PRN-01" {% endif %} name="payments_recieved_number"
+      hx-post="{% url 'check_payment_num_valid' %}"
+      hx-trigger="keyup delay:0s"
+      hx-target="#check_payment_num_valid_target"
+      required> -->
       <div id="check_payment_num_valid_target"></div>
     </div>
   </div>
@@ -156,9 +161,21 @@
           </tr>
         </thead>
         <tbody id="item_table_body">
+          {% if cust.OpeningBalance or cust.OpeningBalance == '0' %}
+          <tr>
+            <td>1</td>
+            <td class="text-center">-</td>
+            <td class="text-center">-</td>
+            <td>Open .Bal.</td>
+            <td class="text-center">-</td>
+            <td class="text-center">-</td>
+            <td class="text-center">-</td>
+            <td>{{ cust.OpeningBalance }}</td>
+          </tr>
+          {% endif %}
           {% for i in all_invoice %}
             <tr id="row1">
-              <td>{{ forloop.counter }}</td>
+              <td>{% if cust.OpeningBalance or cust.OpeningBalance == '0' %}{{ forloop.counter|add:1 }}{% else %}{{ forloop.counter }}{% endif %}</td>
               <td style="width: 15%;" class='text-right'>{{ i.inv_date|date:'Y-m-d' }}{{ i.retainer_invoice_date|date:'Y-m-d' }}{{ i.start|date:'Y-m-d' }}{{ i.creditnote_date|date:'Y-m-d' }}</td>
               <td style="width: 17%;" class='text-right'>{{ i.due_date|date:'Y-m-d' }}{{ i.end|date:'Y-m-d' }}{% if i.retainer_invoice_number or i.credit_note %}---- NILL ----{% endif %}</td>
               <td style="width: 15%;" class='text-right'>{% if i.invoice_no %}INVOICE{% elif i.retainer_invoice_number %}RETAINER{% elif i.reinvoiceno %}RECCURING{% elif i.credit_note %}CREDIT NOTE{% endif %}</td>

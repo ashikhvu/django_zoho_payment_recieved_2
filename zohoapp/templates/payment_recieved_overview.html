@@ -145,7 +145,7 @@
                                     <label style="color: rgb(198, 198, 198);" for="">Bal : <span class="text-light">{{ i.pay_rec_balance }}</span></label>
                                 </div>
                                 <div class="text-end p-0 m-0">
-                                    <label style="color: rgb(198, 198, 198);" for="">Status : <span {% if i.status == 'save' %} style="color: greenyellow;" {% else %} style="color: rgb(255, 210, 63);" {% endif %}>{{ i.status|capfirst }}</span></label>
+                                    <label style="color: rgb(198, 198, 198);" for="">Status : <span {% if i.status == 'save' %} style="color: rgb(255, 255, 255);" {% else %} style="color: rgb(255, 255, 255);" {% endif %}>{{ i.status|capfirst }}</span></label>
                                 </div>
                             </td>
                         </tr>
@@ -618,7 +618,7 @@
           </div>
         </div>
         <div class="p-2">
-          <table style="color: black;" class="table">
+          <!-- <table style="color: black;" class="table">
             <thead class="bg-light">
               <th style="color: black;">#</th>
               <th style="color: black;">DATE</th>
@@ -643,7 +643,7 @@
               </tr>
               {% endfor %}
             </tbody>
-          </table>
+          </table> -->
         </div>
         <br>
         <div class="">
@@ -651,26 +651,26 @@
             <div class="col-sm-12 col-lg-8"></div>
             <div class="col-sm-12 col-lg-4">
               <div class="row">
-                <div class="col-sm-12 col-lg-6">
-                  <label style="font-weight: 600;" for="">Amount :</label>
+                <div class="col-sm-12 col-lg-7">
+                  <label style="font-weight: 600;" class="fs-6" for="">PARTICULARS:</label>
                 </div>
-                <div class="col-sm-12 col-lg-6 text-end">
-                  <label style="font-weight: 600;" class="pe-5" for="">{{ pay_data.pay_rec_amount }}</label>
+                <div class="col-sm-12 col-lg-5 text-end">
+                  <label style="font-weight: 600;" class="pe-5 fs-6" for="">{{ pay_data.pay_rec_amount }}</label>
                 </div>
               </div>
             </div>
             <div class="col-sm-12 col-lg-8"></div>
             <div class="col-sm-12 col-lg-4">
               <div class="row">
-                <div class="col-sm-12 col-lg-6">
-                  <label style="font-weight: 600;" for="">Paid :</label>
+                <div class="col-sm-12 col-lg-7">
+                  <label style="font-weight: 600;" class="fs-6" for="">AMOUNT:</label>
                 </div>
-                <div class="col-sm-12 col-lg-6 text-end">
-                  <label style="font-weight: 600;" class="pe-5" for="">{{ pay_data.pay_rec_paid }}</label>
+                <div class="col-sm-12 col-lg-5 text-end">
+                  <label style="font-weight: 600;" class="pe-5 fs-6" for="">{{ pay_data.pay_rec_paid }}</label>
                 </div>
               </div>
             </div>
-            <div class="col-sm-12 col-lg-8"></div>
+            <!-- <div class="col-sm-12 col-lg-8"></div>
             <div class="col-sm-12 col-lg-4">
               <div class="row">
                 <div style="font-weight: 600;" class="col-sm-12 col-lg-6">
@@ -680,7 +680,7 @@
                   <label style="font-weight: 600;" class="pe-5" for="">{{ pay_data.pay_rec_balance }}</label>
                 </div>
               </div>
-            </div>
+            </div> -->
           </div>
         </div>
         <br><br>

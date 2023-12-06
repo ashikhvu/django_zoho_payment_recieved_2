@@ -13592,30 +13592,72 @@ def create_ewaybillz(request):
             cust=cat,
         )
 
+        # if EwaybillIdModel.objects.filter(user=request.user.id).exists():
+        #     eway_id = EwaybillIdModel.objects.filter(user=request.user.id).last()
+        #     if invoiceno != eway_id.eway_bill_number:
+        #         ref_num = int(eway_bill.id)+1
+        #         eway_id.ref_number = f'{ref_num:02}'
+        #         eway_id.save()
+        #     else:
+        #         eway_id = EwaybillIdModel(user=user)
+        #         eway_id.save()
+        #         ref_num = int(eway_bill.id)+1
+        #         eway_id.ref_number = f'{ref_num:02}'
+
+        #         pay_rec_num = int(eway_id.id)+1
+        #         eway_id.eway_bill_number = f'EWB-{pay_rec_num:02}'
+        #         eway_id.save()
+        # else:
+        #     eway_id = EwaybillIdModel(user=user)
+        #     eway_id.save()
+        #     ref_num = int(eway_bill.id)+1
+        #     eway_id.ref_number = f'{ref_num:02}'
+
+        #     pay_rec_num = int(eway_id.id)+1
+        #     eway_id.eway_bill_number = f'EWB-{pay_rec_num:02}'
+        #     eway_id.save()
+
         if EwaybillIdModel.objects.filter(user=request.user.id).exists():
-            eway_id = EwaybillIdModel.objects.filter(user=request.user.id).last()
-            if invoiceno != eway_id.eway_bill_number:
-                ref_num = int(eway_bill.id)+1
-                eway_id.ref_number = f'{ref_num:02}'
-                eway_id.save()
+            pay = EwaybillIdModel.objects.filter(user=request.user.id)
+            pay_id = pay.last()
+            if pay.exclude(id=pay_id.id).last():
+                pay_id_second_last = pay.exclude(id=pay_id.id).last()
+                pattern = pay_id_second_last.pattern
             else:
-                eway_id = EwaybillIdModel(user=user)
-                eway_id.save()
-                ref_num = int(eway_bill.id)+1
-                eway_id.ref_number = f'{ref_num:02}'
+                pay_id_second_last = pay.first()
+                pattern = pay_id_second_last.pattern
+            if invoiceno != pay_id.eway_bill_number:
+                pay_id = EwaybillIdModel(user=user)
+                count_for_ref_no = EwaybillIdModel.objects.filter(user=user.id).count()
+                pay_id.pattern = pattern
+                pay_id.save()
+                ref_num = int(count_for_ref_no)+2
+                pay_id.ref_number = f'{ref_num:02}'
 
-                pay_rec_num = int(eway_id.id)+1
-                eway_id.eway_bill_number = f'EWB-{pay_rec_num:02}'
-                eway_id.save()
-        else:
-            eway_id = EwaybillIdModel(user=user)
-            eway_id.save()
-            ref_num = int(eway_bill.id)+1
-            eway_id.ref_number = f'{ref_num:02}'
+                pay_id.eway_bill_number = pay_id_second_last.eway_bill_number
+                pay_id.save()
+            else:
+                pay_id = EwaybillIdModel(user=user)
+                count_for_ref_no = EwaybillIdModel.objects.filter(user=user.id).count()
+                pay_id.pattern = pattern
+                pay_id.save()
+                ref_num = int(count_for_ref_no)+2
+                pay_id.ref_number = f'{ref_num:02}'
 
-            pay_rec_num = int(eway_id.id)+1
-            eway_id.eway_bill_number = f'EWB-{pay_rec_num:02}'
-            eway_id.save()
+                pay_rec_num = ''.join(i for i in pay_id_second_last.eway_bill_number if i.isdigit())
+                pay_rec_num = int(pay_rec_num)+1
+
+                pay_id.eway_bill_number = f'{pattern}{pay_rec_num:02}'
+                pay_id.save()
+        else:  
+            pay_id = EwaybillIdModel(user=user)
+            pay_id.save()
+            pay_id.ref_number = f'{2:02}'
+            
+            pattern = ''.join(i for i in invoiceno if not i.isdigit())
+            pay_id.pattern = pattern
+            pay_id.eway_bill_number = f'{pattern}{2:02}'
+            pay_id.save()
 
         items = request.POST.getlist("item[]")
         hsn = request.POST.getlist('hsn[]')
@@ -20902,10 +20944,11 @@ def check_payment_num_valid(request):
         else:
             return HttpResponse("<span class='text-danger'>Payment Recieved Number is not Continues</span>")
     else:
-        if payments_recieved_number != 'PRN-01':
-            return HttpResponse("<span class='text-danger'>Payment Recieved Number is not Continues</span>")
-        else:
-            return HttpResponse("")
+        # if payments_recieved_number != 'PRN-01':
+        #     return HttpResponse("<span class='text-danger'>Payment Recieved Number is not Continues</span>")
+        # else:
+        #     return HttpResponse("")
+        return HttpResponse("")
 
 @login_required(login_url='login')
 def payment_reciedved_list_out(request):
@@ -21150,28 +21193,45 @@ def payment_recieved_create_new(request):
             
 
         if PaymentRecievedIdModel.objects.filter(user=request.user.id).exists():
-            pay_id = PaymentRecievedIdModel.objects.filter(user=request.user.id).last()
+            pay = PaymentRecievedIdModel.objects.filter(user=request.user.id)
+            pay_id = pay.last()
+            if pay.exclude(id=pay_id.id).last():
+                pay_id_second_last = pay.exclude(id=pay_id.id).last()
+                pattern = pay_id_second_last.pattern
+            else:
+                pay_id_second_last = pay.first()
+                pattern = pay_id_second_last.pattern
             if payments_recieved_number != pay_id.pay_rec_number:
-                ref_num = int(payment.id)+1
+                pay_id = PaymentRecievedIdModel(user=user)
+                count_for_ref_no = PaymentRecievedIdModel.objects.filter(user=user.id).count()
+                pay_id.pattern = pattern
+                pay_id.save()
+                ref_num = int(count_for_ref_no)+2
                 pay_id.ref_number = f'{ref_num:02}'
+
+                pay_id.pay_rec_number = pay_id_second_last.pay_rec_number
                 pay_id.save()
             else:
                 pay_id = PaymentRecievedIdModel(user=user)
+                count_for_ref_no = PaymentRecievedIdModel.objects.filter(user=user.id).count()
+                pay_id.pattern = pattern
                 pay_id.save()
-                ref_num = int(payment.id)+1
+                ref_num = int(count_for_ref_no)+2
                 pay_id.ref_number = f'{ref_num:02}'
 
-                pay_rec_num = int(pay_id.id)+1
-                pay_id.pay_rec_number = f'PRN-{pay_rec_num:02}'
+                pay_rec_num = ''.join(i for i in pay_id_second_last.pay_rec_number if i.isdigit())
+                pay_rec_num = int(pay_rec_num)+1
+
+                pay_id.pay_rec_number = f'{pattern}{pay_rec_num:02}'
                 pay_id.save()
-        else:
+        else:  
             pay_id = PaymentRecievedIdModel(user=user)
             pay_id.save()
-            ref_num = int(payment.id)+1
-            pay_id.ref_number = f'{ref_num:02}'
-
-            pay_rec_num = int(pay_id.id)+1
-            pay_id.pay_rec_number = f'PRN-{pay_rec_num:02}'
+            pay_id.ref_number = f'{2:02}'
+            
+            pattern = ''.join(i for i in payments_recieved_number if not i.isdigit())
+            pay_id.pattern = pattern
+            pay_id.pay_rec_number = f'{pattern}{2:02}'
             pay_id.save()
 
     return redirect('payment_reciedved_list_out')
@@ -21318,30 +21378,50 @@ def import_payment_recieved(request):
                                                             pay_rec_paid = float(total_amount)-float(total_balance),
                                                             pay_rec_balance = total_balance)
                             payment.save()
+
+
                     if PaymentRecievedIdModel.objects.filter(user=request.user.id).exists():
-                        pay_id = PaymentRecievedIdModel.objects.filter(user=request.user.id).last()
+                        pay = PaymentRecievedIdModel.objects.filter(user=request.user.id)
+                        pay_id = pay.last()
+                        if pay.exclude(id=pay_id.id).last():
+                            pay_id_second_last = pay.exclude(id=pay_id.id).last()
+                            pattern = pay_id_second_last.pattern
+                        else:
+                            pay_id_second_last = pay.first()
+                            pattern = pay_id_second_last.pattern
                         if payments_recieved_number != pay_id.pay_rec_number:
-                            ref_num = int(payment.id)+1
+                            pay_id = PaymentRecievedIdModel(user=user)
+                            count_for_ref_no = PaymentRecievedIdModel.objects.filter(user=user.id).count()
+                            pay_id.pattern = pattern
+                            pay_id.save()
+                            ref_num = int(count_for_ref_no)+2
                             pay_id.ref_number = f'{ref_num:02}'
+
+                            pay_id.pay_rec_number = pay_id_second_last.pay_rec_number
                             pay_id.save()
                         else:
                             pay_id = PaymentRecievedIdModel(user=user)
+                            count_for_ref_no = PaymentRecievedIdModel.objects.filter(user=user.id).count()
+                            pay_id.pattern = pattern
                             pay_id.save()
-                            ref_num = int(payment.id)+1
+                            ref_num = int(count_for_ref_no)+2
                             pay_id.ref_number = f'{ref_num:02}'
 
-                            pay_rec_num = int(pay_id.id)+1
-                            pay_id.pay_rec_number = f'PRN-{pay_rec_num:02}'
+                            pay_rec_num = ''.join(i for i in pay_id_second_last.pay_rec_number if i.isdigit())
+                            pay_rec_num = int(pay_rec_num)+1
+
+                            pay_id.pay_rec_number = f'{pattern}{pay_rec_num:02}'
                             pay_id.save()
-                    else:
+                    else:  
                         pay_id = PaymentRecievedIdModel(user=user)
                         pay_id.save()
-                        ref_num = int(payment.id)+1
-                        pay_id.ref_number = f'{ref_num:02}'
-
-                        pay_rec_num = int(pay_id.id)+1
-                        pay_id.pay_rec_number = f'PRN-{pay_rec_num:02}'
+                        pay_id.ref_number = f'{2:02}'
+                        
+                        pattern = ''.join(i for i in payments_recieved_number if not i.isdigit())
+                        pay_id.pattern = pattern
+                        pay_id.pay_rec_number = f'{pattern}{2:02}'
                         pay_id.save()
+
                 else:
                     messages.info(request,f"Customer with mail id {mail} doen't exists")
                     return redirect('payment_reciedved_list_out')
@@ -21772,10 +21852,11 @@ def check_eway_num_valid(request):
         else:
             return HttpResponse("<span class='text-danger'>Eway Number is not Continues</span>")
     else:
-        if eway_invoive_bill_no != 'EWB-01':
-            return HttpResponse("<span class='text-danger'>Eway Number is not Continues</span>")
-        else:
-            return HttpResponse("")
+        # if eway_invoive_bill_no != 'EWB-01':
+        #     return HttpResponse("<span class='text-danger'>Eway Number is not Continues</span>")
+        # else:
+        #     return HttpResponse("")
+        return HttpResponse("")
 
 @login_required(login_url='login')
 def access_vehicle_number(request):
