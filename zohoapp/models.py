@@ -1695,6 +1695,7 @@ class PaymentRecievedAllInvoices(models.Model):
     invoice_amount = models.FloatField(null=True,blank=True)
     paid = models.FloatField(null=True,blank=True)
     balance = models.FloatField(null=True,blank=True)
+    invoice_id = models.CharField(max_length=255,null=True,blank=True)
     payment_recieved = models.ForeignKey(PaymentRecievedModel,on_delete=models.CASCADE,null=True,blank=True)
 
 class PaymentRecievedComments(models.Model):
