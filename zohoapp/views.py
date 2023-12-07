@@ -21729,7 +21729,7 @@ def payment_recieved_update(request,pk):
         if len(all_inv_date) == len(all_inv_due_date) == len(all_inv_inv_type) == len(all_inv_inv_no) == len(all_inv_inv_amount) == len(all_inv_payment) == len(all_inv_balance) == len(all_inv_inv_id):
             print('\n\n')
             for i in range(len(all_inv_date)):
-                # print(f'{all_inv_date[i]} {all_inv_due_date[i]} {all_inv_inv_type[i]} {all_inv_inv_no[i]} {all_inv_inv_amount[i]} {all_inv_payment[i]} {all_inv_balance[i]}')
+                print(f'{all_inv_date[i]} {all_inv_due_date[i]} {all_inv_inv_type[i]} {all_inv_inv_no[i]} {all_inv_inv_amount[i]} {all_inv_payment[i]} {all_inv_balance[i]}  {all_inv_inv_id[i]}')
                 
                 # check due date valid
                 if all_inv_due_date[i] == '---- NILL ----':

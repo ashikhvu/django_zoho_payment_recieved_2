@@ -376,7 +376,7 @@
                 <td style="width: 15%;" class='text-right'><input name="inv_amount[]" type="text" class="total_amount form-control text-dark" value="{{ i.invoice_amount }}"></td>
                 <td style="width: 15%;" class='text-right'><input name="payment_amount[]" type="number" class="p-2 ps-3 total_payment form-control text-dark" min="0" value="{{ i.paid }}"></td>
                 <td style="width: 15%;" class='text-right'><input name="balance[]" type="number" class="p-2 ps-3 total_balance form-control text-dark" value="{{ i.balance }}" readonly></td>
-                <td hidden><input type="text" name="invoice_id[]" value="{{ i.id }}"></td>
+                <td hidden><input type="text" name="invoice_id[]" value="{{ i.invoice_id }}"></td>
                 <!-- <td style="width: 22%;" class='text-right total_amount'>{{ i.grandtotal }}{{ i.total_amount }}{% if i.reinvoiceno %}{{ i.total }}{% endif %}{% if i.credit_note %}{{ i.subtotal }}{% endif %}</td>
                 <td style="width: 22%;" class='text-right total_payment'>{{ i.paid_amount }}{% if i.total_amount and i.balance %}{{ i.total_amount|sub_int:i.balance }}{% endif %}{{ i.paid }}{% if i.credit_note %}0{% endif %}</td> -->
              
