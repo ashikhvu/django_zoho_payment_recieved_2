@@ -22218,6 +22218,286 @@ def import_eway_bill(request):
     
     return redirect('ewaylistout')
 
-          
+from io import StringIO
 
+          
+@login_required(login_url='login')
+def generate_pdf_sendmail_payment_received(request,pk):
+
+    buffer = StringIO()
+    # p = canvas.Canvas(buffer,pagesize=A4)
+    pdf_filename = "sample.pdf"
+    doc = SimpleDocTemplate(pdf_filename, pagesize=letter)
+
+    company_data = company_details.objects.get(user=request.user.id)
+    # doc = SimpleDocTemplate(response, pagesize=letter)
+    elements = []
+
+    customers = customer.objects.filter(user=request.user.id)
+
+    data = [["                              ","                                          ","                            "]]
+
+    heading_style = ParagraphStyle(
+        'Heading1',
+        parent=getSampleStyleSheet()['Heading1'],
+        # alignment=1,  # Centered alignment
+        fontSize=16,
+        fontName='Helvetica-Bold',
+    )
+    big_font_stle = ParagraphStyle(
+        'Heading1',
+        parent=getSampleStyleSheet()['Heading1'],
+        # alignment=1,  # Centered alignment
+        fontSize=10,
+        fontName='Helvetica-Bold', 
+        spaceBefore=0,  # Adjust space before the paragraph
+        spaceAfter=0, 
+    )
+    heading_style1 = ParagraphStyle(
+        'Heading1',
+        parent=getSampleStyleSheet()['Heading1'],
+        # alignment=1,  # Centered alignment
+        fontSize=10,
+        fontName='Helvetica',
+        spaceBefore=0,  # Adjust space before the paragraph
+        spaceAfter=0,   
+    )
+    heading_style3 = ParagraphStyle(
+        'Heading1',
+        parent=getSampleStyleSheet()['Heading1'],
+        alignment=1,  # Centered alignment
+        fontSize=15,
+        fontName='Helvetica',
+    )
+    company = company_details.objects.get(id=request.user.id)
+    pay_id = PaymentRecievedModel.objects.get(id=pk)
+    cust = customer.objects.get(id=pay_id.customer.id)
+    empty = Paragraph("", heading_style)
+    heading1 = Paragraph(f"{company_data.company_name}", heading_style)
+    para1 = Paragraph(f"{company_data.city}, {company_data.state}, {company_data.pincode}",heading_style1)
+    para2 = Paragraph(f"Phone : {company_data.contact_number}",heading_style1)
+    para3 = Paragraph(f"Email : {company_data.company_email}",heading_style1)
+    heading2 = Paragraph(f"PAYMENT RECIEVED", heading_style)
+    # elements.append(heading3)
+    elements.append(heading1)
+    elements.append(empty)
+    elements.append(empty)
+    elements.append(para1)
+    elements.append(para2)
+
+    elements.append(empty)
+    elements.append(empty) 
+    elements.append(empty)
+    elements.append(empty)
+
+
+    elements.append(heading2)
+
+    
+    # for i in range(10):
+    data.append(["Payment Rec. No :",f"{pay_id.payment_recieved_number}",f"{cust.customerName}"])
+    data.append(["Reference No :",f"{pay_id.reference_number}",f"{cust.Address1}"])
+    data.append(["Pay Rec. Date :",f"{pay_id.payment_recieved_date.strftime('%Y-%m-%d')}",f"{cust.customerEmail}"])
+    data.append(["Payment Method:",f"{pay_id.payment_recieved_method}",f"{cust.GSTTreatment[0:50]}"])
+    data.append(["GST NO :",f"{cust.GSTIN}",f"{cust.GSTTreatment[50:]}"])
+
+    table = Table(data)
+
+
+    
+    data1 = [["                              ","                                          ","                            "]]
+    data1.append([Paragraph(f"PARTICULARS : {pay_id.pay_rec_paid}",big_font_stle),"",""])
+    data1.append([Paragraph(f"AMOUNT : {pay_id.pay_rec_balance}",big_font_stle),"",""])
+    table1 = Table(data1)
+
+    style = TableStyle([
+        ('BACKGROUND', (0, 0), (0, 0), colors.white),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('ALIGN',(0,1),(-1,-1 ),'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ])
+
+    # table.setStyle(style)
+    elements.append(table)
+
+    elements.append(empty)
+    elements.append(empty)
+    elements.append(empty)
+    elements.append(empty)
+    elements.append(empty)
+    elements.append(empty)
+
+    elements.append(table1)
+    doc.build(elements)
+    pdf = buffer.getvalue()
+    buffer.close()
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="mypdf.pdf"'
+    # response.write(pdf)
+    with open(pdf_filename, 'rb') as pdf_file:
+        pdf_content = pdf_file.read()
+    return pdf_content
+
+@login_required(login_url='login')
+def payment_recieved_to_mail(request,pk):
+    if request.user:
+        if request.method == 'POST':
+            pdf = generate_pdf_sendmail_payment_received(request,pk)
+            pay_data = PaymentRecievedModel.objects.get(id=pk)
+            subject = "Payment Recieved document"
+            message = request.POST['email_message']
+            email = request.POST['email_ids']
+            mail = EmailMessage(subject, message, settings.EMAIL_HOST_USER, [email])
+            mail.attach("mypdf.pdf", pdf , 'application/pdf')
+            mail.send()
+            messages.success(request,"Document sent successfully")
+
+
+
+    return redirect('payment_recieved_overview',pk=pk)
+
+
+@login_required(login_url='login')
+def generate_pdf_sendmail_ewaybill(request,pk):
+
+    buffer = StringIO()
+    # p = canvas.Canvas(buffer,pagesize=A4)
+    pdf_filename = "sample.pdf"
+    doc = SimpleDocTemplate(pdf_filename, pagesize=letter)
+
+    company_data = company_details.objects.get(user=request.user.id)
+    # doc = SimpleDocTemplate(response, pagesize=letter)
+    elements = []
+
+    customers = customer.objects.filter(user=request.user.id)
+
+    data = [["                              ","                                          ","                            "]]
+
+    heading_style = ParagraphStyle(
+        'Heading1',
+        parent=getSampleStyleSheet()['Heading1'],
+        # alignment=1,  # Centered alignment
+        fontSize=16,
+        fontName='Helvetica-Bold',
+    )
+    big_font_stle = ParagraphStyle(
+        'Heading1',
+        parent=getSampleStyleSheet()['Heading1'],
+        # alignment=1,  # Centered alignment
+        fontSize=10,
+        fontName='Helvetica-Bold', 
+        spaceBefore=0,  # Adjust space before the paragraph
+        spaceAfter=0, 
+    )
+    heading_style1 = ParagraphStyle(
+        'Heading1',
+        parent=getSampleStyleSheet()['Heading1'],
+        # alignment=1,  # Centered alignment
+        fontSize=10,
+        fontName='Helvetica',
+        spaceBefore=0,  # Adjust space before the paragraph
+        spaceAfter=0,   
+    )
+    heading_style3 = ParagraphStyle(
+        'Heading1',
+        parent=getSampleStyleSheet()['Heading1'],
+        alignment=1,  # Centered alignment
+        fontSize=15,
+        fontName='Helvetica',
+    )
+    company = company_details.objects.get(id=request.user.id)
+    eway_id = EWayBill.objects.get(id=pk)
+    cust = customer.objects.get(id=eway_id.cust.id)
+    empty = Paragraph("", heading_style)
+    heading1 = Paragraph(f"{company_data.company_name}", heading_style)
+    para1 = Paragraph(f"{company_data.city}, {company_data.state}, {company_data.pincode}",heading_style1)
+    para2 = Paragraph(f"Phone : {company_data.contact_number}",heading_style1)
+    para3 = Paragraph(f"Email : {company_data.company_email}",heading_style1)
+    heading2 = Paragraph(f"PAYMENT RECIEVED", heading_style)
+    # elements.append(heading3)
+    elements.append(heading1)
+    elements.append(empty)
+    elements.append(empty)
+    elements.append(para1)
+    elements.append(para2)
+
+    elements.append(empty)
+    elements.append(empty) 
+    elements.append(empty)
+    elements.append(empty)
+
+
+    elements.append(heading2)
+
+    
+    # for i in range(10):
+    data.append(["Payment Rec. No :",f"{pay_id.payment_recieved_number}",f"{cust.customerName}"])
+    data.append(["Reference No :",f"{pay_id.reference_number}",f"{cust.Address1}"])
+    data.append(["Pay Rec. Date :",f"{pay_id.payment_recieved_date.strftime('%Y-%m-%d')}",f"{cust.customerEmail}"])
+    data.append(["Payment Method:",f"{pay_id.payment_recieved_method}",f"{cust.GSTTreatment[0:50]}"])
+    data.append(["GST NO :",f"{cust.GSTIN}",f"{cust.GSTTreatment[50:]}"])
+
+    table = Table(data)
+
+
+    
+    data1 = [["                              ","                                          ","                            "]]
+    data1.append([Paragraph(f"PARTICULARS : {pay_id.pay_rec_paid}",big_font_stle),"",""])
+    data1.append([Paragraph(f"AMOUNT : {pay_id.pay_rec_balance}",big_font_stle),"",""])
+    table1 = Table(data1)
+
+    style = TableStyle([
+        ('BACKGROUND', (0, 0), (0, 0), colors.white),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('ALIGN',(0,1),(-1,-1 ),'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ])
+
+    # table.setStyle(style)
+    elements.append(table)
+
+    elements.append(empty)
+    elements.append(empty)
+    elements.append(empty)
+    elements.append(empty)
+    elements.append(empty)
+    elements.append(empty)
+
+    elements.append(table1)
+    doc.build(elements)
+    pdf = buffer.getvalue()
+    buffer.close()
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="mypdf.pdf"'
+    # response.write(pdf)
+    with open(pdf_filename, 'rb') as pdf_file:
+        pdf_content = pdf_file.read()
+    return pdf_content
+
+@login_required(login_url='login')
+def ewaybill_to_mail(request,pk):
+    if request.user:
+        if request.method == 'POST':
+            pdf = generate_pdf_sendmail_ewaybill(request,pk)
+            pay_data = PaymentRecievedModel.objects.get(id=pk)
+            subject = "Payment Recieved document"
+            message = request.POST['email_message']
+            email = request.POST['email_ids']
+            mail = EmailMessage(subject, message, settings.EMAIL_HOST_USER, [email])
+            mail.attach("mypdf.pdf", pdf , 'application/pdf')
+            mail.send()
+            messages.success(request,"Document sent successfully")
+
+
+
+    return redirect('payment_recieved_overview',pk=pk)
+                
 #==============================================  ASHIKH VU (end) ================================================
