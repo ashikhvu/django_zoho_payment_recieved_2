@@ -435,15 +435,15 @@
                       <div class="dropdown me-1">
                         <a class="btn btns  px-2 py-2" type="button" data-bs-toggle="dropdown" aria-expanded="false" ><span data-bs-toggle="tooltip" data-bs-placement="bottom" title="SHARE" class="fa fa-share"></span></a>
                         <ul class="dropdown-menu dropdown-menu-top">
-                          <li><a id="send_mail*******" class="dropdown-item ornage_hover" onclick="call_mail()" data-bs-toggle="modal" data-bs-target="#exampleModal************"><span class="fa fa-envelope"></span> Mail</a></li>
+                          <li><a id="send_mail" class="dropdown-item ornage_hover" data-bs-toggle="modal" data-bs-target="#exampleModal2"><span class="fa fa-envelope"></span> Mail</a></li>
                           <li><a id="whatsapp_modal" class="dropdown-item ornage_hover" href="whatsapp://send?text=Check out this website: [Your URL]" data-action="share/whatsapp/share"><span class="fa fa-whatsapp"></span> Whatsapp</a></li>
                         </ul>
                       </div>
-                    <script>
+                    <!-- <script>
                         function call_mail(){
-                            window.location.href="{% url 'generate_pdf_sendmail_ewaybill' eway_single.id %}"
+                            window.location.href="{% url 'ewaybill_to_mail' eway_single.id %}"
                         }
-                    </script>
+                    </script> -->
                     {% for v in ewayi %}
                         <a href="{% url 'ewayedit' v.id  %}" class=" fa fa-pencil btns px-2 py-2"
                               data-toggle="tooltip" title="EDIT"> </a>&nbsp;
@@ -1438,6 +1438,13 @@ $(document).ready(function () {
         $('#modal3').attr('hidden',true)
         $('#modal4').attr('hidden',false)
       })
+    })
+    $(document).ready(function(){
+        $('#share_to_email_form').on('submit',function(){
+            var s = setInterval(function(){
+                window.location.href=""
+            },1000)
+        })
     })
 </script>
 {% endblock %}

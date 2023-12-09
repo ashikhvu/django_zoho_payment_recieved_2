@@ -1661,7 +1661,7 @@ class PaymentRecievedModel(models.Model):
     customer = models.ForeignKey(customer,on_delete=models.CASCADE,null=True,blank=True)
     customer_name = models.CharField(max_length=255)
     customer_mail = models.EmailField(null=True)
-    customer_bill_address = models.TextField()
+    customer_bill_address = models.TextField(null=True,blank=True)
     customer_gst_treatment = models.CharField(max_length=255,default='value',blank=True)
     customer_gst_number = models.CharField(max_length=255,null=True,blank=True)
     payment_recieved_number = models.CharField(max_length=255)

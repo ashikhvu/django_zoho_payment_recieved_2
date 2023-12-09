@@ -1005,7 +1005,6 @@ urlpatterns = [
     path('import_eway_bill',views.import_eway_bill,name='import_eway_bill'),
     path('payment_recieved_to_mail/<int:pk>',views.payment_recieved_to_mail,name='payment_recieved_to_mail'),
     path('ewaybill_to_mail/<int:pk>',views.ewaybill_to_mail,name='ewaybill_to_mail'),
-    path('generate_pdf_sendmail_ewaybill/<int:pk>',views.generate_pdf_sendmail_ewaybill,name='generate_pdf_sendmail_ewaybill'),
 
 
     #==============================================  ASHIKH VU (end) ================================================

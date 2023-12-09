@@ -147,7 +147,7 @@
                   <td style="text-align: center;">{{ i.customer_name }}</td>
                   <td style="text-align: center;">{{ i.customer_mail }}</td>
                   <td style="text-align: center;">{{ i.pay_rec_paid }}</td>
-                  <td style="text-align: center;" {% if i.status == 'save' %}class="tg export_hide"{% else %}class="to export_hide"{% endif %}>{{ i.status|capfirst }}</td>
+                  <td style="text-align: center;" {% if i.status == 'save' %}class=" export_hide"{% else %}class=" export_hide"{% endif %}>{{ i.status|capfirst }}</td>
                   <td style="text-align: center;">{{ i.pay_rec_balance }}</td>
                 </tr>
               {% endfor %}

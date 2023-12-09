@@ -21008,6 +21008,7 @@ def payment_recieved_create(request):
     cust = ''
     banks = Bankcreation.objects.filter(user = request.user.id)
     payments = PaymentRecievedIdModel.objects.filter(user=request.user.id)
+    pay=payment_terms.objects.filter(user=request.user.id)
     last=''
     if payments.exists():
         last = payments.last()
@@ -21029,7 +21030,8 @@ def payment_recieved_create(request):
                                                         'last':last,
                                                         'invoice_data':invoice_data,
                                                         'retainer_invoice_data':retainer_invoice_data,
-                                                        "all_invoice":all_invoice})
+                                                        "all_invoice":all_invoice,
+                                                        "pay":pay})
 
 @login_required(login_url='login')
 def get_customer_details_for_pay_rec(request):
@@ -21537,6 +21539,7 @@ def payment_recieved_overview_sort_paynum(request,pk):
 @login_required(login_url='login')
 def payment_recieved_view_or_edit(request,pk):
     pay_data = PaymentRecievedModel.objects.get(id=pk)
+    cust = customer.objects.get(id=pay_data.customer.id)
     company = company_details.objects.get(id=request.user.id)    
     customers = customer.objects.filter(user=request.user.id,status='Active')
     banks = Bankcreation.objects.filter(user = request.user.id)
@@ -21551,7 +21554,8 @@ def payment_recieved_view_or_edit(request,pk):
     return render(request,'payment_recieved_view_or_edit.html',{'customers':customers,
                                                                 'pay_data':pay_data,
                                                                 'banks':banks,
-                                                                'all_invoice':all_invoice})
+                                                                'all_invoice':all_invoice,
+                                                                "cust":cust})
 
 @login_required(login_url='login')
 def payment_recieved_update(request,pk):
@@ -21687,29 +21691,71 @@ def payment_recieved_update(request,pk):
         
         
 
+        # if PaymentRecievedIdModel.objects.filter(user=request.user.id).exists():
+        #     pay_id = PaymentRecievedIdModel.objects.filter(user=request.user.id).last()
+        #     if payments_recieved_number != pay_id.pay_rec_number:
+        #         ref_num = int(payment.id)+1
+        #         pay_id.ref_number = f'{ref_num:02}'
+        #         pay_id.save()
+        #     else:
+        #         pay_id = PaymentRecievedIdModel(user=user)
+        #         pay_id.save()
+        #         ref_num = int(payment.id)+1
+        #         pay_id.ref_number = f'{ref_num:02}'
+
+        #         pay_rec_num = int(pay_id.id)+1
+        #         pay_id.pay_rec_number = f'PRN-{pay_rec_num:02}'
+        #         pay_id.save()
+        # else:
+        #     pay_id = PaymentRecievedIdModel(user=user)
+        #     pay_id.save()
+        #     ref_num = int(payment.id)+1
+        #     pay_id.ref_number = f'{ref_num:02}'
+
+        #     pay_rec_num = int(pay_id.id)+1
+        #     pay_id.pay_rec_number = f'PRN-{pay_rec_num:02}'
+        #     pay_id.save()
+
         if PaymentRecievedIdModel.objects.filter(user=request.user.id).exists():
-            pay_id = PaymentRecievedIdModel.objects.filter(user=request.user.id).last()
-            if payments_recieved_number != pay_id.pay_rec_number:
-                ref_num = int(payment.id)+1
+            pay = PaymentRecievedIdModel.objects.filter(user=request.user.id)
+            pay_id = pay.last()
+            if pay.exclude(id=pay_id.id).last():
+                pay_id_second_last = pay.exclude(id=pay_id.id).last()
+                pattern = pay_id_second_last.pattern
+            else:
+                pay_id_second_last = pay.first()
+                pattern = pay_id_second_last.pattern
+            if payments_recieved_number != pay_id.pay_rec_number and payments_recieved_number != '' :
+                pay_id = PaymentRecievedIdModel(user=user)
+                count_for_ref_no = PaymentRecievedIdModel.objects.filter(user=user.id).count()
+                pay_id.pattern = pattern
+                pay_id.save()
+                ref_num = int(count_for_ref_no)+2
                 pay_id.ref_number = f'{ref_num:02}'
+
+                pay_id.pay_rec_number = pay_id_second_last.pay_rec_number
                 pay_id.save()
             else:
                 pay_id = PaymentRecievedIdModel(user=user)
+                count_for_ref_no = PaymentRecievedIdModel.objects.filter(user=user.id).count()
+                pay_id.pattern = pattern
                 pay_id.save()
-                ref_num = int(payment.id)+1
+                ref_num = int(count_for_ref_no)+2
                 pay_id.ref_number = f'{ref_num:02}'
 
-                pay_rec_num = int(pay_id.id)+1
-                pay_id.pay_rec_number = f'PRN-{pay_rec_num:02}'
+                pay_rec_num = ''.join(i for i in pay_id_second_last.pay_rec_number if i.isdigit())
+                pay_rec_num = int(pay_rec_num)+1
+
+                pay_id.pay_rec_number = f'{pattern}{pay_rec_num:02}'
                 pay_id.save()
-        else:
+        else:  
             pay_id = PaymentRecievedIdModel(user=user)
             pay_id.save()
-            ref_num = int(payment.id)+1
-            pay_id.ref_number = f'{ref_num:02}'
-
-            pay_rec_num = int(pay_id.id)+1
-            pay_id.pay_rec_number = f'PRN-{pay_rec_num:02}'
+            pay_id.ref_number = f'{2:02}'
+            
+            pattern = ''.join(i for i in payments_recieved_number if not i.isdigit())
+            pay_id.pattern = pattern
+            pay_id.pay_rec_number = f'{pattern}{2:02}'
             pay_id.save()
     
 
@@ -22114,31 +22160,6 @@ def import_eway_bill(request):
 
             index_table.append({sl_no:eway_bill.id})
 
-            # if EwaybillIdModel.objects.filter(user=request.user.id).exists():
-            #     eway_id = EwaybillIdModel.objects.filter(user=request.user.id).last()
-            #     if invoiceno != eway_id.eway_bill_number:
-            #         ref_num = int(eway_bill.id)+1
-            #         eway_id.ref_number = f'{ref_num:02}'
-            #         eway_id.save()
-            #     else:
-            #         eway_id = EwaybillIdModel(user=user.id)
-            #         eway_id.save()
-            #         ref_num = int(eway_bill.id)+1
-            #         eway_id.ref_number = f'{ref_num:02}'
-
-            #         pay_rec_num = int(eway_id.id)+1
-            #         eway_id.eway_bill_number = f'EWB-{pay_rec_num:02}'
-            #         eway_id.save()
-            # else:
-            #     eway_id = EwaybillIdModel(user=user.id)
-            #     eway_id.save()
-            #     ref_num = int(eway_bill.id)+1
-            #     eway_id.ref_number = f'{ref_num:02}'
-
-            #     pay_rec_num = int(eway_id.id)+1
-            #     eway_id.eway_bill_number = f'EWB-{pay_rec_num:02}'
-            #     eway_id.save()
-
             if EwaybillIdModel.objects.filter(user=request.user.id).exists():
                 pay = EwaybillIdModel.objects.filter(user=request.user.id)
                 pay_id_last = pay.last()
@@ -22361,143 +22382,51 @@ def payment_recieved_to_mail(request,pk):
     return redirect('payment_recieved_overview',pk=pk)
 
 
-@login_required(login_url='login')
-def generate_pdf_sendmail_ewaybill(request,pk):
 
-    buffer = StringIO()
-    # p = canvas.Canvas(buffer,pagesize=A4)
-    pdf_filename = "sample.pdf"
-    doc = SimpleDocTemplate(pdf_filename, pagesize=letter)
-
-    company_data = company_details.objects.get(user=request.user.id)
-    # doc = SimpleDocTemplate(response, pagesize=letter)
-    elements = []
-
-    customers = customer.objects.filter(user=request.user.id)
-
-    data = [["                              ","                                          ","                            "]]
-
-    heading_style = ParagraphStyle(
-        'Heading1',
-        parent=getSampleStyleSheet()['Heading1'],
-        # alignment=1,  # Centered alignment
-        fontSize=16,
-        fontName='Helvetica-Bold',
-    )
-    big_font_stle = ParagraphStyle(
-        'Heading1',
-        parent=getSampleStyleSheet()['Heading1'],
-        # alignment=1,  # Centered alignment
-        fontSize=10,
-        fontName='Helvetica-Bold', 
-        spaceBefore=0,  # Adjust space before the paragraph
-        spaceAfter=0, 
-    )
-    heading_style1 = ParagraphStyle(
-        'Heading1',
-        parent=getSampleStyleSheet()['Heading1'],
-        # alignment=1,  # Centered alignment
-        fontSize=10,
-        fontName='Helvetica',
-        spaceBefore=0,  # Adjust space before the paragraph
-        spaceAfter=0,   
-    )
-    heading_style3 = ParagraphStyle(
-        'Heading1',
-        parent=getSampleStyleSheet()['Heading1'],
-        alignment=1,  # Centered alignment
-        fontSize=15,
-        fontName='Helvetica',
-    )
-    company = company_details.objects.get(id=request.user.id)
-    eway_id = EWayBill.objects.get(id=pk)
-    cust = customer.objects.get(id=eway_id.cust.id)
-    empty = Paragraph("", heading_style)
-    heading1 = Paragraph(f"{company_data.company_name}", heading_style)
-    para1 = Paragraph(f"{company_data.city}, {company_data.state}, {company_data.pincode}",heading_style1)
-    para2 = Paragraph(f"Phone : {company_data.contact_number}",heading_style1)
-    para3 = Paragraph(f"Email : {company_data.company_email}",heading_style1)
-    heading2 = Paragraph(f"PAYMENT RECIEVED", heading_style)
-    # elements.append(heading3)
-    elements.append(heading1)
-    elements.append(empty)
-    elements.append(empty)
-    elements.append(para1)
-    elements.append(para2)
-
-    elements.append(empty)
-    elements.append(empty) 
-    elements.append(empty)
-    elements.append(empty)
-
-
-    elements.append(heading2)
-
-    
-    # for i in range(10):
-    data.append(["Payment Rec. No :",f"{pay_id.payment_recieved_number}",f"{cust.customerName}"])
-    data.append(["Reference No :",f"{pay_id.reference_number}",f"{cust.Address1}"])
-    data.append(["Pay Rec. Date :",f"{pay_id.payment_recieved_date.strftime('%Y-%m-%d')}",f"{cust.customerEmail}"])
-    data.append(["Payment Method:",f"{pay_id.payment_recieved_method}",f"{cust.GSTTreatment[0:50]}"])
-    data.append(["GST NO :",f"{cust.GSTIN}",f"{cust.GSTTreatment[50:]}"])
-
-    table = Table(data)
-
-
-    
-    data1 = [["                              ","                                          ","                            "]]
-    data1.append([Paragraph(f"PARTICULARS : {pay_id.pay_rec_paid}",big_font_stle),"",""])
-    data1.append([Paragraph(f"AMOUNT : {pay_id.pay_rec_balance}",big_font_stle),"",""])
-    table1 = Table(data1)
-
-    style = TableStyle([
-        ('BACKGROUND', (0, 0), (0, 0), colors.white),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('ALIGN',(0,1),(-1,-1 ),'LEFT'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
-        ('GRID', (0, 0), (-1, -1), 1, colors.black)
-    ])
-
-    # table.setStyle(style)
-    elements.append(table)
-
-    elements.append(empty)
-    elements.append(empty)
-    elements.append(empty)
-    elements.append(empty)
-    elements.append(empty)
-    elements.append(empty)
-
-    elements.append(table1)
-    doc.build(elements)
-    pdf = buffer.getvalue()
-    buffer.close()
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="mypdf.pdf"'
-    # response.write(pdf)
-    with open(pdf_filename, 'rb') as pdf_file:
-        pdf_content = pdf_file.read()
-    return pdf_content
 
 @login_required(login_url='login')
 def ewaybill_to_mail(request,pk):
     if request.user:
         if request.method == 'POST':
-            pdf = generate_pdf_sendmail_ewaybill(request,pk)
-            pay_data = PaymentRecievedModel.objects.get(id=pk)
-            subject = "Payment Recieved document"
-            message = request.POST['email_message']
-            email = request.POST['email_ids']
-            mail = EmailMessage(subject, message, settings.EMAIL_HOST_USER, [email])
-            mail.attach("mypdf.pdf", pdf , 'application/pdf')
-            mail.send()
-            messages.success(request,"Document sent successfully")
+            if request.method == 'POST':
+                emails_string = request.POST['email_ids']
+
+                # Split the string by commas and remove any leading or trailing whitespace
+                emails_list = [email.strip() for email in emails_string.split(',')]
+                email_message = request.POST['email_message']
+                # print(emails_list)
+
+                eway=EWayBill.objects.filter(user=request.user.id)
+                ewayi=EWayBill.objects.filter(id=pk)
+
+                eway_single = EWayBill.objects.get(id=pk)
+                comments = EwayComments.objects.filter(user=request.user.id,eway=eway_single.id)
+
+                company=company_details.objects.get(user=request.user.id)
+                ewayb = EWayBillItem.objects.filter(eway_bill_id=pk)  # Fetch items related to the EWayBill id
+                projc = get_object_or_404(EWayBill, id=pk)
+                # bill = SalesOrder.objects.get(id = id)
+                # items = sales_item.objects.filter( sale = bill.id)
+                        
+                context = {'eway':eway,"ewayi":ewayi,'ewayb':ewayb,'projc':projc,'company':company,
+                                                "eway_single":eway_single,"comments":comments}
+                template_path = 'ewaybill_pdf.html'
+                template = get_template(template_path)
+
+                html  = template.render(context)
+                result = BytesIO()
+                pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)#, link_callback=fetch_resources)
+                pdf = result.getvalue()
+                filename = "eway_bill.pdf"
+                subject = "eway_Bill"
+                email = EmailMessage(subject, f"Hi,\nPlease find the attached SALES BILL - Bill-", from_email=settings.EMAIL_HOST_USER,to=emails_list)
+                email.attach(filename, pdf, "application/pdf")
+                email.send(fail_silently=False)
+
+                msg = messages.success(request, 'Bill has been shared via email successfully..!')
 
 
+    return redirect('ewayoverview',id=pk)
 
-    return redirect('payment_recieved_overview',pk=pk)
-                
+            
 #==============================================  ASHIKH VU (end) ================================================
